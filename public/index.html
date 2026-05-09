@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visionboard Image Generator</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <header class="masthead">
+          <div>
+            <p class="eyebrow">Visionboard Generator</p>
+            <h1>把心愿清单压缩成一张愿景图</h1>
+          </div>
+          <div class="status-pill" id="statusPill">Mock ready</div>
+        </header>
+
+        <section class="panel input-panel" aria-label="Prompt input">
+          <div class="panel-title">
+            <span>01</span>
+            <h2>心愿输入</h2>
+          </div>
+
+          <label>
+            <span>原始心愿</span>
+            <textarea id="rawWish" rows="4"></textarea>
+          </label>
+
+          <label>
+            <span>浓缩后的视觉愿景</span>
+            <textarea id="visionSummary" rows="3"></textarea>
+          </label>
+
+          <label>
+            <span>理想状态</span>
+            <input id="desiredState" />
+          </label>
+
+          <div class="split">
+            <label>
+              <span>关键词</span>
+              <textarea id="keywords" rows="3"></textarea>
+            </label>
+            <label>
+              <span>画面元素</span>
+              <textarea id="sceneKeywords" rows="3"></textarea>
+            </label>
+          </div>
+
+          <div class="split compact">
+            <label>
+              <span>模型</span>
+              <select id="model"></select>
+            </label>
+            <label>
+              <span>比例</span>
+              <select id="aspectRatio">
+                <option value="16:9">16:9 Web 横图</option>
+                <option value="1:1">1:1 方图</option>
+                <option value="9:16">9:16 竖图</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel style-panel" aria-label="Style presets">
+          <div class="panel-title">
+            <span>02</span>
+            <h2>风格包</h2>
+          </div>
+          <div class="style-grid" id="styleGrid"></div>
+        </section>
+      </section>
+
+      <aside class="preview">
+        <section class="result-card">
+          <div class="result-toolbar">
+            <button id="fillSample" type="button">填入示例</button>
+            <button id="generate" type="button">生成图片</button>
+          </div>
+          <div class="image-stage" id="imageStage">
+            <div class="empty-state">
+              <p>等待生成</p>
+              <span>选择模型和风格后查看图片效果</span>
+            </div>
+          </div>
+          <div class="result-meta">
+            <span id="modelMeta">model: -</span>
+            <span id="latencyMeta">latency: -</span>
+          </div>
+        </section>
+
+        <section class="prompt-card">
+          <div class="panel-title">
+            <span>03</span>
+            <h2>Prompt Preview</h2>
+          </div>
+          <pre id="promptPreview"></pre>
+        </section>
+      </aside>
+    </main>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
