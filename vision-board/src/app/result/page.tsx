@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api/request";
 import { reportAction } from "@/lib/eazo-bridge";
 import { VisionOrb, WarmPageShell } from "@/features/vision-journey";
+import {
+  buildRoadmapPrompt,
+  parseRoadmap,
+  type Roadmap,
+} from "@/lib/roadmap-generation";
 
 const SPRING = { type: "spring" as const, stiffness: 280, damping: 32 };
 
@@ -190,11 +195,256 @@ function VisionBoardTab({
   );
 }
 
-function RoadmapTab({ goals, timeframe }: { goals: Goal[]; timeframe: string }) {
-  const timeframeLabel =
-    timeframe === "3months" ? "3 个月" : timeframe === "6months" ? "6 个月" : "1 年";
+function RoadmapEndStar({ timeframeLabel }: { timeframeLabel: string }) {
+  return (
+    <motion.div
+      className="relative pl-16"
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ ...SPRING, delay: 0.55 }}
+    >
+      <div
+        className="absolute left-3 top-0 w-7 h-7 rounded-full flex items-center justify-center"
+        style={{
+          background: "linear-gradient(135deg, var(--color-gold), var(--color-gold-light))",
+          boxShadow: "0 0 16px rgb(var(--gold-rgb) / 0.50)",
+        }}
+      >
+        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      </div>
+      <div className="pt-1">
+        <p className="text-sm font-light italic leading-[1.8] text-[#8A8A8A]">
+          {timeframeLabel}后，那个更好的你，
+          <br />正在等待你的到来。
+        </p>
+      </div>
+    </motion.div>
+  );
+}
 
-  const phases =
+function RoadmapTab({
+  goals,
+  timeframe,
+  roadmap,
+  isGenerating,
+  error,
+  onRetry,
+}: {
+  goals: Goal[];
+  timeframe: string;
+  roadmap: Roadmap | null;
+  isGenerating: boolean;
+  error: string | null;
+  onRetry: () => void;
+}) {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+
+  const timeframeLabel =
+    timeframe === "3months"
+      ? "3 个月"
+      : timeframe === "6months"
+        ? "6 个月"
+        : timeframe === "1year"
+          ? "1 年"
+          : timeframe || "6 个月";
+
+  const toggleCheck = (id: string) => {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const totalActions = roadmap?.phases.reduce((sum, p) => sum + p.actions.length, 0) ?? 0;
+
+  // Loading skeleton
+  if (isGenerating) {
+    return (
+      <div className="px-5 pb-8">
+        <div className="py-6">
+          <p className="mb-2 text-xs font-normal uppercase tracking-[0.08em] text-[#C9A961]">
+            Roadmap
+          </p>
+          <div className="mb-2 h-7 w-44 rounded-full skeleton-shimmer" />
+          <div className="h-4 w-32 rounded-full skeleton-shimmer" />
+        </div>
+        <div className="mb-5 h-20 rounded-[24px] skeleton-shimmer" />
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="rounded-[20px] border border-[#F0F0F0] bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.035)]"
+            >
+              <div className="mb-3 h-4 w-20 rounded-full skeleton-shimmer" />
+              <div className="mb-4 h-5 w-40 rounded-full skeleton-shimmer" />
+              <div className="space-y-2.5">
+                <div className="h-4 w-full rounded-full skeleton-shimmer" />
+                <div className="h-4 w-4/5 rounded-full skeleton-shimmer" />
+                <div className="h-4 w-3/4 rounded-full skeleton-shimmer" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // AI-generated roadmap
+  if (roadmap) {
+    return (
+      <div className="px-5 pb-8">
+        <motion.div
+          className="py-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={SPRING}
+        >
+          <p className="mb-2 text-xs font-normal uppercase tracking-[0.08em] text-[#C9A961]">
+            Roadmap
+          </p>
+          <h2 className="mb-1 text-[22px] font-medium leading-[1.6] text-[#2A2A2A]">
+            {timeframeLabel}目标路线图
+          </h2>
+          <p className="text-sm font-light leading-[1.8] text-[#8A8A8A]">
+            已完成{" "}
+            <span className="text-[#C9A961]">{checked.size}</span> / {totalActions} 个行动
+          </p>
+        </motion.div>
+
+        {/* Yearly goal card */}
+        <motion.div
+          className="mb-6 overflow-hidden rounded-[24px] p-5"
+          style={{ background: "linear-gradient(135deg, #D4AF37 0%, #C9A961 100%)" }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...SPRING, delay: 0.08 }}
+        >
+          <p className="mb-2 text-xs font-normal uppercase tracking-[0.08em] text-white/70">
+            总体方向
+          </p>
+          <p className="text-lg font-medium leading-[1.6] text-white">{roadmap.yearlyGoal}</p>
+        </motion.div>
+
+        {/* Phase timeline */}
+        <div className="relative">
+          <div className="absolute bottom-8 left-6 top-0 w-px bg-gradient-to-b from-[#C9A961]/60 via-[#E8E8E8] to-transparent" />
+          <div className="space-y-4">
+            {roadmap.phases.map((phase, phaseIdx) => {
+              const phaseCheckedCount = phase.actions.filter((a) => checked.has(a.id)).length;
+              const phaseDone = phaseCheckedCount === phase.actions.length;
+
+              return (
+                <motion.div
+                  key={phase.id}
+                  className="relative pl-16"
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ ...SPRING, delay: 0.12 + phaseIdx * 0.1 }}
+                >
+                  <div
+                    className="absolute left-4 top-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300"
+                    style={{
+                      background: phaseDone ? "var(--color-gold)" : "var(--color-cream)",
+                      borderColor: "var(--color-gold)",
+                      boxShadow: phaseDone
+                        ? "0 0 12px rgb(var(--gold-rgb) / 0.50)"
+                        : "0 0 8px rgb(var(--gold-rgb) / 0.28)",
+                    }}
+                  >
+                    {phaseDone ? (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 12 12">
+                        <path
+                          d="M2 6l3 3 5-5"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    ) : (
+                      <div className="w-2 h-2 rounded-full bg-[var(--color-gold)]" />
+                    )}
+                  </div>
+
+                  <div className="rounded-[20px] border border-[#F0F0F0] bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.035)]">
+                    <div className="mb-3 flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-medium uppercase tracking-[0.05em] text-[#C9A961]">
+                        {phase.label}
+                      </span>
+                      {phase.timeRange && (
+                        <span className="rounded-full border border-[#E8E8E8] bg-[#F7F7F5] px-2 py-0.5 text-xs text-[#8A8A8A]">
+                          {phase.timeRange}
+                        </span>
+                      )}
+                      <span className="ml-auto text-xs text-[#ABABAB]">
+                        {phaseCheckedCount}/{phase.actions.length}
+                      </span>
+                    </div>
+                    <p className="mb-3 text-sm font-medium leading-[1.6] text-[#2A2A2A]">
+                      {phase.milestone}
+                    </p>
+                    <div className="space-y-1.5">
+                      {phase.actions.map((action) => {
+                        const isChecked = checked.has(action.id);
+                        return (
+                          <button
+                            key={action.id}
+                            onClick={() => toggleCheck(action.id)}
+                            className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-all duration-200 hover:bg-[#F7F7F5] active:scale-[0.99]"
+                          >
+                            <div
+                              className={
+                                "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border transition-all duration-200 " +
+                                (isChecked
+                                  ? "border-[#C9A961] bg-[#C9A961]"
+                                  : "border-[#DADADA] bg-white")
+                              }
+                            >
+                              {isChecked && (
+                                <svg
+                                  className="h-2.5 w-2.5 text-white"
+                                  fill="none"
+                                  viewBox="0 0 12 12"
+                                >
+                                  <path
+                                    d="M10 3L5 8.5 2 5.5"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                            <span
+                              className={
+                                "text-sm font-light leading-[1.6] transition-all duration-200 " +
+                                (isChecked ? "text-[#ABABAB] line-through" : "text-[#4A4A4A]")
+                              }
+                            >
+                              {action.text}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+            <RoadmapEndStar timeframeLabel={timeframeLabel} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: error or AI disabled — rule-based phases
+  const fallbackPhases =
     goals.length <= 2
       ? [
           { phase: "第一阶段", label: "启动", goals: goals.slice(0, 1) },
@@ -225,11 +475,26 @@ function RoadmapTab({ goals, timeframe }: { goals: Goal[]; timeframe: string }) 
         </p>
       </motion.div>
 
+      {error && (
+        <motion.div
+          className="mb-5 flex items-center gap-3 rounded-2xl border border-[#F0F0F0] bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.035)]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <p className="flex-1 text-sm font-light text-[#8A8A8A]">AI 路线图暂时无法生成</p>
+          <button
+            onClick={onRetry}
+            className="flex-shrink-0 rounded-full border border-[#C9A961]/40 bg-[#C9A961]/8 px-3 py-1.5 text-xs text-[#C9A961]"
+          >
+            重试
+          </button>
+        </motion.div>
+      )}
+
       <div className="relative">
         <div className="absolute bottom-0 left-6 top-0 w-px bg-gradient-to-b from-[#C9A961]/70 via-[#E8E8E8] to-transparent" />
-
         <div className="space-y-6">
-          {phases.map((phase, phaseIdx) => (
+          {fallbackPhases.map((phase, phaseIdx) => (
             <motion.div
               key={phase.phase}
               className="relative pl-16"
@@ -247,14 +512,15 @@ function RoadmapTab({ goals, timeframe }: { goals: Goal[]; timeframe: string }) 
               >
                 <div className="w-2 h-2 rounded-full bg-[var(--color-gold)]" />
               </div>
-
               <p className="mb-3 text-xs font-normal uppercase tracking-[0.05em] text-[#C9A961]">
                 {phase.phase} · {phase.label}
               </p>
-
               <div className="space-y-3">
                 {phase.goals.map((goal) => (
-                  <div key={goal.title} className="rounded-[20px] border border-[#F0F0F0] bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.035)]">
+                  <div
+                    key={goal.title}
+                    className="rounded-[20px] border border-[#F0F0F0] bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.035)]"
+                  >
                     <div className="flex items-start gap-3">
                       <div className="mt-1">
                         <GoalDot />
@@ -276,32 +542,7 @@ function RoadmapTab({ goals, timeframe }: { goals: Goal[]; timeframe: string }) 
               </div>
             </motion.div>
           ))}
-
-          <motion.div
-            className="relative pl-16"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ ...SPRING, delay: 0.5 }}
-          >
-            <div
-              className="absolute left-3 top-0 w-7 h-7 rounded-full flex items-center justify-center"
-              style={{
-                background:
-                  "linear-gradient(135deg, var(--color-gold), var(--color-gold-light))",
-                boxShadow: "0 0 16px rgb(var(--gold-rgb) / 0.50)",
-              }}
-            >
-              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-            </div>
-            <div className="pt-1">
-              <p className="text-sm font-light italic leading-[1.8] text-[#8A8A8A]">
-                {timeframeLabel}后，那个更好的你，
-                <br />正在等待你的到来。
-              </p>
-            </div>
-          </motion.div>
+          <RoadmapEndStar timeframeLabel={timeframeLabel} />
         </div>
       </div>
     </div>
@@ -422,6 +663,12 @@ function ResultContent() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
 
+  const [roadmap, setRoadmap] = useState<Roadmap | null>(null);
+  const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
+  const [roadmapError, setRoadmapError] = useState<string | null>(null);
+  const roadmapAttempted = useRef(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     async function loadSession() {
       if (!sessionId) {
@@ -440,36 +687,75 @@ function ResultContent() {
         setSession(loadedSession);
         setIsLoading(false);
 
-        setIsGeneratingImage(true);
-        setGenerationError(null);
-        try {
-          const imageRes = await request("/api/generate-image", {
-            method: "POST",
-            body: JSON.stringify({
-              rawWish: loadedSession.summary || "用户希望创建一张能代表理想生活状态的愿景图。",
-              visionSummary:
-                loadedSession.summary ||
-                "A refined personal vision board representing the user's desired future life.",
-              selectedVisionOptions: loadedSession.goals.map((goal) => goal.title),
-              goalOutcome: loadedSession.goals
-                .map((goal) => `${goal.title}: ${goal.description}`)
-                .join("\n"),
-              timeframe: loadedSession.timeframe,
-              desiredState: "confident, calm, abundant, fulfilled, self-directed",
-              keywords: loadedSession.goals.map((goal) => goal.category),
-              goals: loadedSession.goals,
-              stylePack: "clean-girl-luxury",
-              model: "aiping:Doubao-Seedream-4.0",
-              aspectRatio: "16:9",
-            }),
-          });
-          const imageData = await imageRes.json();
-          if (!imageRes.ok) throw new Error(imageData.error || "生成愿景图失败");
-          setGeneratedImage(imageData as GeneratedVisionImage);
-        } catch (error) {
-          setGenerationError(error instanceof Error ? error.message : "生成愿景图失败");
-        } finally {
-          setIsGeneratingImage(false);
+        // --- Image resolution order ---
+        // 1. Already cached by loading-screen (sessionStorage write happened before navigation)
+        // 2. Loading-screen generation is still in progress → poll sessionStorage
+        // 3. User landed directly on result page → generate fresh
+
+        const readCache = (): GeneratedVisionImage | null => {
+          try {
+            const raw = sessionStorage.getItem(`visionImage_${sessionId}`);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw) as GeneratedVisionImage;
+            sessionStorage.removeItem(`visionImage_${sessionId}`);
+            return parsed;
+          } catch {
+            return null;
+          }
+        };
+
+        const cached = readCache();
+        if (cached) {
+          setGeneratedImage(cached);
+        } else if (sessionStorage.getItem(`visionImagePending_${sessionId}`)) {
+          // Loading-screen is still generating — poll until result arrives
+          setIsGeneratingImage(true);
+          pollRef.current = setInterval(() => {
+            const img = readCache();
+            if (img) {
+              clearInterval(pollRef.current!);
+              setGeneratedImage(img);
+              setIsGeneratingImage(false);
+            } else if (!sessionStorage.getItem(`visionImagePending_${sessionId}`)) {
+              // Pending flag removed without a result (generation failed / timed out)
+              clearInterval(pollRef.current!);
+              setGenerationError("愿景图生成失败，请稍后重试");
+              setIsGeneratingImage(false);
+            }
+          }, 1000);
+        } else {
+          // No loading-screen pre-generation (e.g. user navigated directly) — generate now
+          setIsGeneratingImage(true);
+          setGenerationError(null);
+          try {
+            const imageRes = await request("/api/generate-image", {
+              method: "POST",
+              body: JSON.stringify({
+                rawWish: loadedSession.summary || "用户希望创建一张能代表理想生活状态的愿景图。",
+                visionSummary:
+                  loadedSession.summary ||
+                  "A refined personal vision board representing the user's desired future life.",
+                selectedVisionOptions: loadedSession.goals.map((goal) => goal.title),
+                goalOutcome: loadedSession.goals
+                  .map((goal) => `${goal.title}: ${goal.description}`)
+                  .join("\n"),
+                timeframe: loadedSession.timeframe,
+                desiredState: "confident, calm, abundant, fulfilled, self-directed",
+                keywords: loadedSession.goals.map((goal) => goal.category),
+                goals: loadedSession.goals,
+                stylePack: "clean-girl-luxury",
+                model: "aiping:Doubao-Seedream-4.0",
+                aspectRatio: "16:9",
+              }),
+            });
+            const imageData = await imageRes.json();
+            if (!imageRes.ok) throw new Error(imageData.error || "生成愿景图失败");
+            setGeneratedImage(imageData as GeneratedVisionImage);
+          } catch (error) {
+            setGenerationError(error instanceof Error ? error.message : "生成愿景图失败");
+          } finally {
+            setIsGeneratingImage(false);
+          }
         }
 
         reportAction({
@@ -483,7 +769,52 @@ function ResultContent() {
       }
     }
     loadSession();
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
   }, [sessionId]);
+
+  const generateRoadmap = useCallback(
+    async (sessionData: NonNullable<typeof session>) => {
+      setIsGeneratingRoadmap(true);
+      setRoadmapError(null);
+      try {
+        const prompt = buildRoadmapPrompt({
+          goals: sessionData.goals,
+          timeframe: sessionData.timeframe || "6months",
+          emotion: sessionData.emotion,
+        });
+        const res = await request("/api/ai/text", {
+          method: "POST",
+          body: JSON.stringify({
+            responseFormat: "json",
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "生成路线图失败");
+        setRoadmap(parseRoadmap(data.text as string));
+      } catch (e) {
+        setRoadmapError(e instanceof Error ? e.message : "生成路线图失败");
+      } finally {
+        setIsGeneratingRoadmap(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (
+      activeTab === "roadmap" &&
+      session &&
+      !roadmap &&
+      !isGeneratingRoadmap &&
+      !roadmapAttempted.current
+    ) {
+      roadmapAttempted.current = true;
+      generateRoadmap(session);
+    }
+  }, [activeTab, session, roadmap, isGeneratingRoadmap, generateRoadmap]);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -580,6 +911,13 @@ function ResultContent() {
                 <RoadmapTab
                   goals={session?.goals ?? []}
                   timeframe={session?.timeframe ?? "6months"}
+                  roadmap={roadmap}
+                  isGenerating={isGeneratingRoadmap}
+                  error={roadmapError}
+                  onRetry={() => {
+                    roadmapAttempted.current = false;
+                    if (session) generateRoadmap(session);
+                  }}
                 />
               )}
               {activeTab === "spirit" && <SpiritTab />}

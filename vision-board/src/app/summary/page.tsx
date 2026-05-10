@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { request } from "@/lib/api/request";
 import { reportAction } from "@/lib/eazo-bridge";
 import {
+  DISCOVERY_CARDS,
   SPRING,
   WarmHeader,
   WarmPageShell,
@@ -36,9 +37,44 @@ function SummaryContent() {
           setSummary(session.summary);
           setUserText(session.userSupplement || "");
         } else {
+          // Try AI-powered personalized reflection; fall back to static template
+          let aiSummary: string | null = null;
+          try {
+            const likedCardDetails = DISCOVERY_CARDS.filter((c) =>
+              (likedCards as number[]).includes(c.id)
+            )
+              .map((c) => `${c.title}（${c.category}）`)
+              .join("、");
+
+            const aiRes = await request("/api/ai/text", {
+              method: "POST",
+              body: JSON.stringify({
+                messages: [
+                  {
+                    role: "system",
+                    content:
+                      "你是一位温柔、智慧的愿景教练，能从用户的直觉选择中读出深层渴望。请根据用户的情绪状态和他们共鸣的愿景卡片，写一段简短、温暖、有洞察力的个性化反馈（2-3 段，中文，不用列举清单，语气诚恳亲切）。要让用户感到\u201c被看见\u201d，而不是泛泛而谈。字数控制在 150 字以内。",
+                  },
+                  {
+                    role: "user",
+                    content: `我现在的情绪状态：${session.emotion || "calm"}\n我喜欢的愿景卡片（${likedCards.length} 张）：${likedCardDetails || "暂无"}\n请根据这些信息，写一段洞察性的愿景反馈。`,
+                  },
+                ],
+              }),
+            });
+            if (aiRes.ok) {
+              const aiData = await aiRes.json();
+              if (aiData.text) aiSummary = aiData.text as string;
+            }
+          } catch {
+            // AI unavailable — fall back to template below
+          }
+
+          const finalSummary = aiSummary ?? generated;
+          setSummary(finalSummary);
           await request("/api/session", {
             method: "PATCH",
-            body: JSON.stringify({ sessionId: parseInt(sessionId), summary: generated }),
+            body: JSON.stringify({ sessionId: parseInt(sessionId), summary: finalSummary }),
           });
         }
       } finally {

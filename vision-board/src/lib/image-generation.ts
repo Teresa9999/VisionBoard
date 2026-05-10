@@ -1,3 +1,5 @@
+import { assertRealAiEnabled } from "@/lib/ai-config";
+
 export type VisionImageGoal = {
   title: string;
   description?: string;
@@ -151,6 +153,8 @@ Generate one polished image in ${input.aspectRatio || "16:9"} aspect ratio.
 }
 
 export async function generateVisionImageWithAiping(prompt: string, input: VisionImageInput) {
+  assertRealAiEnabled();
+
   if (!process.env.AIPING_API_KEY) {
     throw new Error("Missing AIPING_API_KEY.");
   }
