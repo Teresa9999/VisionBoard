@@ -20,6 +20,7 @@ function GoalsContent() {
   const [goals, setGoals] = useState<VisionGoal[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<number[]>([]);
   const [timeframe, setTimeframe] = useState("6months");
+  const [customTimeframe, setCustomTimeframe] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isContinuing, setIsContinuing] = useState(false);
 
@@ -54,22 +55,24 @@ function GoalsContent() {
 
     setIsContinuing(true);
 
+    const finalTimeframe = customTimeframe.trim() || timeframe;
+
     try {
       await request("/api/session", {
         method: "PATCH",
         body: JSON.stringify({
           sessionId: parseInt(sessionId!),
           goals: finalGoals,
-          timeframe,
+          timeframe: finalTimeframe,
           status: "completed",
         }),
       });
 
       reportAction({
-        content: `用户确认了 ${finalGoals.length} 个目标，时间框架：${timeframe}`,
+        content: `用户确认了 ${finalGoals.length} 个目标，时间框架：${finalTimeframe}`,
         event_type: "update",
         page: "goals",
-        metadata: { type: "confirm_goals", goal_count: finalGoals.length, timeframe },
+        metadata: { type: "confirm_goals", goal_count: finalGoals.length, timeframe: finalTimeframe },
       });
 
       router.push(`/loading-screen?sessionId=${sessionId}`);
@@ -212,32 +215,63 @@ function GoalsContent() {
             className="mb-6"
           >
             <p className="text-white/60 text-sm mb-4">计划在多久内实现？</p>
-            <div className="grid grid-cols-3 gap-2">
-              {TIMEFRAME_OPTIONS.map((t) => (
-                <motion.button
-                  key={t.key}
-                  onClick={() => setTimeframe(t.key)}
-                  whileTap={{ scale: 0.95 }}
-                  className={
-                    "rounded-2xl py-3 px-2 text-center transition-all duration-200 " +
-                    (timeframe === t.key
-                      ? "bg-gradient-to-b from-[rgb(var(--gold-rgb)/0.25)] to-[rgb(var(--gold-rgb)/0.10)] border border-[rgb(var(--gold-rgb)/0.60)]"
-                      : "glass border border-white/10")
-                  }
-                >
-                  <p
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {TIMEFRAME_OPTIONS.map((t) => {
+                const isActive = !customTimeframe && timeframe === t.key;
+                return (
+                  <motion.button
+                    key={t.key}
+                    onClick={() => {
+                      setTimeframe(t.key);
+                      setCustomTimeframe("");
+                    }}
+                    whileTap={{ scale: 0.95 }}
                     className={
-                      "font-heading text-base font-semibold " +
-                      (timeframe === t.key
-                        ? "text-[var(--color-gold-light)]"
-                        : "text-white/70")
+                      "rounded-2xl py-3 px-2 text-center transition-all duration-200 " +
+                      (isActive
+                        ? "bg-gradient-to-b from-[rgb(var(--gold-rgb)/0.25)] to-[rgb(var(--gold-rgb)/0.10)] border border-[rgb(var(--gold-rgb)/0.60)]"
+                        : "glass border border-white/10")
                     }
                   >
-                    {t.label}
-                  </p>
-                  <p className="text-white/40 text-xs mt-0.5">{t.sub}</p>
-                </motion.button>
-              ))}
+                    <p
+                      className={
+                        "font-heading text-base font-semibold " +
+                        (isActive ? "text-[var(--color-gold-light)]" : "text-white/70")
+                      }
+                    >
+                      {t.label}
+                    </p>
+                    <p className="text-white/40 text-xs mt-0.5">{t.sub}</p>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            <div className="relative">
+              <input
+                type="text"
+                value={customTimeframe}
+                onChange={(e) => setCustomTimeframe(e.target.value)}
+                placeholder="或自定义：毕业前、今年年底、45 天内…"
+                maxLength={30}
+                className={
+                  "w-full rounded-2xl py-3.5 px-4 text-sm font-body bg-white/5 outline-none transition-all duration-200 placeholder:text-white/25 " +
+                  (customTimeframe
+                    ? "border border-[rgb(var(--gold-rgb)/0.60)] text-[var(--color-gold-light)]"
+                    : "border border-white/10 text-white/80")
+                }
+              />
+              {customTimeframe && (
+                <button
+                  onClick={() => setCustomTimeframe("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center"
+                  aria-label="清除自定义时间"
+                >
+                  <svg className="w-3 h-3 text-white/50" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2 2l8 8M10 2l-8 8" />
+                  </svg>
+                </button>
+              )}
             </div>
           </motion.div>
         </motion.div>

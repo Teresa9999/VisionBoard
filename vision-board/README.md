@@ -36,6 +36,10 @@ cp .env.example .env
 
 | Variable | Description |
 |---|---|
+| `AIPING_API_KEY` | AI Ping API key. Used server-side by `/api/generate-image` to call the image generation API. |
+| `AIPING_BASE_URL` | AI Ping API base URL. Defaults to `https://aiping.cn/api/v1`. |
+| `LOCAL_DEMO` | Keep as `true` for the public demo flow without user auth. |
+| `NEXT_PUBLIC_LOCAL_DEMO` | Keep as `true` for the public demo flow without user auth. |
 | `EAZO_PRIVATE_KEY` | Your Eazo developer private key (hex, 64 chars). Used server-side to decrypt the user session token. |
 
 You can generate a keypair in the Eazo developer settings. Never expose the private key to the browser.
@@ -47,6 +51,13 @@ You can generate a keypair in the Eazo developer settings. Never expose the priv
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Deploy the `vision-board` directory as the Vercel project root. Configure these environment variables in Vercel Project Settings:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+LOCAL_DEMO=true
+NEXT_PUBLIC_LOCAL_DEMO=true
+AIPING_API_KEY=your_aiping_key
+AIPING_BASE_URL=https://aiping.cn/api/v1
+```
+
+The browser calls `/api/generate-image` on your own Vercel domain. That server-side function calls AI Ping with `AIPING_API_KEY`, so the key is never exposed to users.

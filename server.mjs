@@ -121,7 +121,9 @@ function buildPrompt(input) {
   const stylePack = stylePacks[input.stylePack] ?? stylePacks["clean-girl-luxury"];
   const keywords = normalizeList(input.keywords);
   const sceneKeywords = normalizeList(input.sceneKeywords);
+  const selectedVisionOptions = normalizeList(input.selectedVisionOptions);
   const avoid = normalizeList(input.avoid);
+  const moodPrompt = input.moodPrompt || stylePack.moodPrompt;
 
   return `
 Create a high-quality aspirational vision board image based on the user's personal wish.
@@ -134,6 +136,15 @@ ${input.rawWish || "The user wants to create a better, more intentional future l
 
 Condensed visual vision:
 ${input.visionSummary || "A refined aspirational lifestyle vision representing the user's ideal future self."}
+
+User's chosen vision directions:
+${selectedVisionOptions.length ? selectedVisionOptions.join("; ") : "A focused, emotionally resonant personal vision selected by the user."}
+
+Goal outcome:
+${input.goalOutcome || "Build a concrete future lifestyle aligned with the user's selected vision direction."}
+
+Timeframe:
+${input.timeframe || "not specified"}
 
 Desired future state:
 ${input.desiredState || "confident, calm, abundant, healthy, emotionally fulfilled"}
@@ -151,7 +162,7 @@ Visual style:
 ${stylePack.stylePrompt}
 
 Mood and emotion:
-${stylePack.moodPrompt}
+${moodPrompt}
 
 Default style scenes:
 ${stylePack.defaultScenes}

@@ -10,6 +10,12 @@ import { randomIn } from "@/utils/stable-random";
 const SPRING = { type: "spring" as const, stiffness: 280, damping: 32 };
 
 type Goal = { id?: number; title: string; description: string; category: string };
+type GeneratedVisionImage = {
+  image: string;
+  provider: string;
+  model: string;
+  latencyMs: number;
+};
 
 const VISION_IMAGES = [
   {
@@ -71,8 +77,19 @@ function GoalDot() {
   );
 }
 
-function VisionBoardTab({ goals }: { goals: Goal[] }) {
+function VisionBoardTab({
+  goals,
+  generatedImage,
+  isGeneratingImage,
+  generationError,
+}: {
+  goals: Goal[];
+  generatedImage: GeneratedVisionImage | null;
+  isGeneratingImage: boolean;
+  generationError: string | null;
+}) {
   const displayImages = VISION_IMAGES.slice(0, Math.min(goals.length + 2, 6));
+  const heroImage = generatedImage?.image ?? displayImages[0].url;
 
   return (
     <div className="px-5 pb-8">
@@ -103,14 +120,25 @@ function VisionBoardTab({ goals }: { goals: Goal[] }) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={displayImages[0].url}
-            alt={displayImages[0].label}
+            src={heroImage}
+            alt={generatedImage ? "Generated vision board" : displayImages[0].label}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-dusk)]/60 to-transparent" />
           <div className="absolute bottom-4 left-4">
             <span className="glass px-3 py-1 rounded-full text-white text-sm font-body">
               {goals[0]?.title || "我的梦想"}
+            </span>
+          </div>
+          <div className="absolute top-4 right-4">
+            <span className="glass px-3 py-1 rounded-full text-white/85 text-xs font-body">
+              {isGeneratingImage
+                ? "AI 生成中"
+                : generatedImage
+                  ? `${generatedImage.provider}/${generatedImage.model}`
+                  : generationError
+                    ? "已使用默认图"
+                    : "默认预览"}
             </span>
           </div>
         </motion.div>
@@ -135,6 +163,12 @@ function VisionBoardTab({ goals }: { goals: Goal[] }) {
           </motion.div>
         ))}
       </div>
+
+      {generatedImage && (
+        <p className="text-[var(--color-text-muted)] text-xs mb-5 text-center font-body">
+          AI Ping 生成耗时 {(generatedImage.latencyMs / 1000).toFixed(1)}s
+        </p>
+      )}
 
       <motion.div
         className="glass-warm rounded-[1.5rem] p-5"
@@ -413,20 +447,62 @@ function ResultContent() {
     goals: Goal[];
     timeframe: string;
     emotion: string;
+    summary?: string | null;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [generatedImage, setGeneratedImage] = useState<GeneratedVisionImage | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadSession() {
-      if (!sessionId) return;
+      if (!sessionId) {
+        setIsLoading(false);
+        return;
+      }
       try {
         const res = await request(`/api/session?sessionId=${sessionId}`);
         const data = await res.json();
-        setSession({
+        const loadedSession = {
           goals: Array.isArray(data.goals) ? (data.goals as Goal[]) : [],
           timeframe: data.timeframe || "6months",
           emotion: data.emotion || "calm",
-        });
+          summary: data.summary || null,
+        };
+        setSession(loadedSession);
+        setIsLoading(false);
+
+        setIsGeneratingImage(true);
+        setGenerationError(null);
+        try {
+          const imageRes = await request("/api/generate-image", {
+            method: "POST",
+            body: JSON.stringify({
+              rawWish: loadedSession.summary || "用户希望创建一张能代表理想生活状态的愿景图。",
+              visionSummary:
+                loadedSession.summary ||
+                "A refined personal vision board representing the user's desired future life.",
+              selectedVisionOptions: loadedSession.goals.map((goal) => goal.title),
+              goalOutcome: loadedSession.goals
+                .map((goal) => `${goal.title}: ${goal.description}`)
+                .join("\n"),
+              timeframe: loadedSession.timeframe,
+              desiredState: "confident, calm, abundant, fulfilled, self-directed",
+              keywords: loadedSession.goals.map((goal) => goal.category),
+              goals: loadedSession.goals,
+              stylePack: "clean-girl-luxury",
+              model: "aiping:Doubao-Seedream-4.0",
+              aspectRatio: "16:9",
+            }),
+          });
+          const imageData = await imageRes.json();
+          if (!imageRes.ok) throw new Error(imageData.error || "生成愿景图失败");
+          setGeneratedImage(imageData as GeneratedVisionImage);
+        } catch (error) {
+          setGenerationError(error instanceof Error ? error.message : "生成愿景图失败");
+        } finally {
+          setIsGeneratingImage(false);
+        }
 
         reportAction({
           content: `用户查看了愿景板结果页`,
@@ -548,7 +624,14 @@ function ResultContent() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ type: "spring" as const, stiffness: 320, damping: 32 }}
             >
-              {activeTab === "vision" && <VisionBoardTab goals={session?.goals ?? []} />}
+              {activeTab === "vision" && (
+                <VisionBoardTab
+                  goals={session?.goals ?? []}
+                  generatedImage={generatedImage}
+                  isGeneratingImage={isGeneratingImage}
+                  generationError={generationError}
+                />
+              )}
               {activeTab === "roadmap" && (
                 <RoadmapTab
                   goals={session?.goals ?? []}

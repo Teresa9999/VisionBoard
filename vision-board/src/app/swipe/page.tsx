@@ -229,6 +229,8 @@ function DoneIcon() {
   );
 }
 
+const REQUIRED_SWIPES = 8;
+
 function SwipeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -238,53 +240,68 @@ function SwipeContent() {
   const [liked, setLiked] = useState<number[]>([]);
   const [skipped, setSkipped] = useState<number[]>([]);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const remaining = DISCOVERY_CARDS.slice(currentIndex);
-  const progress = currentIndex / DISCOVERY_CARDS.length;
+  const swipedCount = currentIndex;
+  const canContinue = swipedCount >= REQUIRED_SWIPES;
+  const allDone = remaining.length === 0;
+  const progress = Math.min(swipedCount / REQUIRED_SWIPES, 1);
+
+  async function navigateToSummary(finalLiked: number[], finalSkipped: number[]) {
+    setIsSaving(true);
+    try {
+      await request("/api/session", {
+        method: "PATCH",
+        body: JSON.stringify({
+          sessionId: parseInt(sessionId!),
+          likedCards: finalLiked,
+          skippedCards: finalSkipped,
+        }),
+      });
+    } catch {
+      // ignore
+    }
+
+    reportAction({
+      content: `用户完成直觉滑卡，喜欢了 ${finalLiked.length} 张卡片`,
+      event_type: "update",
+      page: "swipe",
+      metadata: {
+        type: "complete_swipe",
+        liked_count: finalLiked.length,
+        swiped_count: finalLiked.length + finalSkipped.length,
+        session_id: sessionId,
+      },
+    });
+
+    router.push(`/summary?sessionId=${sessionId}`);
+  }
 
   async function handleSwipe(id: number, isLiked: boolean) {
     if (isTransitioning) return;
     setIsTransitioning(true);
 
+    const newLiked = isLiked ? [...liked, id] : liked;
+    const newSkipped = isLiked ? skipped : [...skipped, id];
+
     if (isLiked) {
-      setLiked((prev) => [...prev, id]);
+      setLiked(newLiked);
     } else {
-      setSkipped((prev) => [...prev, id]);
+      setSkipped(newSkipped);
     }
 
     setCurrentIndex((prev) => prev + 1);
     setIsTransitioning(false);
 
+    // Auto-proceed when all 20 cards are swiped
     if (currentIndex === DISCOVERY_CARDS.length - 1) {
-      const finalLiked = isLiked ? [...liked, id] : liked;
-      const finalSkipped = isLiked ? skipped : [...skipped, id];
-
-      try {
-        await request("/api/session", {
-          method: "PATCH",
-          body: JSON.stringify({
-            sessionId: parseInt(sessionId!),
-            likedCards: finalLiked,
-            skippedCards: finalSkipped,
-          }),
-        });
-      } catch {
-        // ignore
-      }
-
-      reportAction({
-        content: `用户完成直觉滑卡，喜欢了 ${finalLiked.length} 张卡片`,
-        event_type: "update",
-        page: "swipe",
-        metadata: {
-          type: "complete_swipe",
-          liked_count: finalLiked.length,
-          session_id: sessionId,
-        },
-      });
-
-      router.push(`/summary?sessionId=${sessionId}`);
+      await navigateToSummary(newLiked, newSkipped);
     }
+  }
+
+  async function handleContinue() {
+    await navigateToSummary(liked, skipped);
   }
 
   function handleLikeButton() {
@@ -327,7 +344,7 @@ function SwipeContent() {
             直觉探索
           </p>
           <p className="text-white/50 text-xs mt-0.5">
-            {currentIndex + 1} / {DISCOVERY_CARDS.length}
+            {Math.min(swipedCount, REQUIRED_SWIPES)} / {REQUIRED_SWIPES}
           </p>
         </div>
 
@@ -353,7 +370,7 @@ function SwipeContent() {
 
       <div className="flex-1 relative" style={{ minHeight: 400 }}>
         <AnimatePresence>
-          {remaining.length === 0 ? (
+          {allDone ? (
             <motion.div
               key="done"
               className="absolute inset-0 flex items-center justify-center"
@@ -381,8 +398,33 @@ function SwipeContent() {
         </AnimatePresence>
       </div>
 
-      <div className="py-8 pb-[calc(env(safe-area-inset-bottom)+24px)]">
-        <SwipeButtons onSkip={handleSkipButton} onLike={handleLikeButton} />
+      <div className="py-6 pb-[calc(env(safe-area-inset-bottom)+24px)] flex flex-col gap-4">
+        <AnimatePresence>
+          {canContinue && !allDone && (
+            <motion.button
+              key="continue-btn"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              transition={{ type: "spring", stiffness: 260, damping: 24 }}
+              onClick={handleContinue}
+              disabled={isSaving}
+              className="w-full py-4 rounded-2xl font-heading font-semibold text-base tracking-wide disabled:opacity-60"
+              style={{
+                background:
+                  "linear-gradient(135deg, rgb(var(--gold-rgb) / 0.95), rgb(var(--gold-rgb) / 0.70))",
+                boxShadow: "0 8px 24px rgb(var(--gold-rgb) / 0.30)",
+                color: "rgb(var(--midnight-rgb))",
+              }}
+            >
+              {isSaving ? "正在生成…" : "继续 →"}
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        {!allDone && (
+          <SwipeButtons onSkip={handleSkipButton} onLike={handleLikeButton} />
+        )}
       </div>
     </div>
   );
