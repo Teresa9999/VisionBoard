@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+@theme {
+  /* === Brand Colors === */
+  --color-cream: #FAF7F2;
+  --color-warm-white: #FFFCF8;
+  --color-gold: #D4A853;
+  --color-gold-light: #E8C87A;
+  --color-blush: #F2CECE;
+  --color-lavender: #C9C0E8;
+  --color-lavender-deep: #9B8EC4;
+  --color-rose: #E8B4C0;
+  --color-sage: #B8D4C0;
+  --color-dusk: #2D2035;
+  --color-midnight: #1A1028;
+  --color-text-primary: #2D2035;
+  --color-text-secondary: #6B5F7A;
+  --color-text-muted: #A89BB8;
+  --color-card-dark: #3D2E50;
+  --color-card-darker: #2A1E3E;
+  --color-surface: #FAF7F2;
+  --color-border: rgba(45, 32, 53, 0.12);
+
+  /* === Typography === */
+  --font-heading: ui-serif, 'Songti SC', 'Noto Serif SC', Georgia, serif;
+  --font-body: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', Arial, sans-serif;
+
+  /* === Border Radius === */
+  --radius-card: 1.5rem;
+  --radius-button: 9999px;
+  --radius-pill: 9999px;
+}
+
+/* ============ CSS Custom Properties ============ */
+:root {
+  --color-cream: #FAF7F2;
+  --color-warm-white: #FFFCF8;
+  --color-gold: #D4A853;
+  --color-gold-light: #E8C87A;
+  --color-blush: #F2CECE;
+  --color-lavender: #C9C0E8;
+  --color-lavender-deep: #9B8EC4;
+  --color-rose: #E8B4C0;
+  --color-sage: #B8D4C0;
+  --color-dusk: #2D2035;
+  --color-midnight: #1A1028;
+  --color-text-primary: #2D2035;
+  --color-text-secondary: #6B5F7A;
+  --color-text-muted: #A89BB8;
+  --color-card-dark: #3D2E50;
+  --color-card-darker: #2A1E3E;
+  --color-surface: #FAF7F2;
+  --color-border: rgba(45, 32, 53, 0.12);
+
+  /* RGB helpers (for alpha / gradients) */
+  --cream-rgb: 250 247 242;
+  --warm-white-rgb: 255 252 248;
+  --gold-rgb: 212 168 83;
+  --gold-light-rgb: 232 200 122;
+  --blush-rgb: 242 206 206;
+  --lavender-rgb: 201 192 232;
+  --lavender-deep-rgb: 155 142 196;
+  --rose-rgb: 232 180 192;
+  --sage-rgb: 184 212 192;
+  --dusk-rgb: 45 32 53;
+  --midnight-rgb: 26 16 40;
+}
+
+/* ============ Base Reset ============ */
+* {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  box-sizing: border-box;
+}
+
+html, body {
+  min-height: 100svh;
+  background-color: var(--color-cream);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* ============ Custom Utilities ============ */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+.text-gradient-gold {
+  background: linear-gradient(
+    135deg,
+    var(--color-gold),
+    var(--color-gold-light),
+    var(--color-gold)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-dream-gradient {
+  background: linear-gradient(
+    145deg,
+    var(--color-dusk) 0%,
+    var(--color-card-dark) 40%,
+    var(--color-card-darker) 70%,
+    var(--color-midnight) 100%
+  );
+}
+
+.bg-glow-purple {
+  background: radial-gradient(
+    ellipse at center,
+    rgb(var(--lavender-deep-rgb) / 0.30) 0%,
+    transparent 70%
+  );
+}
+
+.bg-glow-gold {
+  background: radial-gradient(
+    ellipse at center,
+    rgb(var(--gold-rgb) / 0.25) 0%,
+    transparent 70%
+  );
+}
+
+.glass {
+  background: rgb(var(--warm-white-rgb) / 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgb(255 255 255 / 0.12);
+}
+
+.glass-warm {
+  background: rgb(var(--cream-rgb) / 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgb(var(--gold-rgb) / 0.20);
+}
+
+/* Emotion glow helpers */
+.glow-sage { box-shadow: 0 0 24px rgb(var(--sage-rgb) / 0.35); }
+.glow-gold { box-shadow: 0 0 24px rgb(var(--gold-light-rgb) / 0.35); }
+.glow-lavender { box-shadow: 0 0 24px rgb(var(--lavender-rgb) / 0.35); }
+.glow-rose { box-shadow: 0 0 24px rgb(var(--rose-rgb) / 0.35); }
+.glow-lavender-deep { box-shadow: 0 0 24px rgb(var(--lavender-deep-rgb) / 0.35); }
+.glow-blush { box-shadow: 0 0 24px rgb(var(--blush-rgb) / 0.35); }
+
+/* ============ Shimmer for skeleton ============ */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgb(237 232 224) 25%,
+    rgb(245 240 234) 50%,
+    rgb(237 232 224) 75%
+  );
+  background-size: 400px 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* ============ Star particle ============ */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.star-particle {
+  animation: twinkle var(--duration, 2s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-120px) scale(0.3); opacity: 0; }
+}
+
+.particle-float {
+  animation: float-up var(--duration, 2s) ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+/* ============ Scrollbar ============ */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-lavender);
+  border-radius: 9999px;
+}
+
+/* ============ Selection ============ */
+::selection {
+  background: rgb(var(--lavender-rgb) / 0.40);
+  color: var(--color-dusk);
+}
