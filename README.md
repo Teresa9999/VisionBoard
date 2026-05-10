@@ -27,12 +27,21 @@ GEMINI_API_KEY=你的_key npm run dev
 cp .env.example .env
 ```
 
+如果使用 AI Ping，在 `.env` 中填写：
+
+```bash
+AIPING_API_KEY=
+AIPING_BASE_URL=https://aiping.cn/api/v1
+```
+
 当前支持：
 
 - Mock Preview
 - OpenAI `gpt-image-2`
 - Gemini `gemini-3.1-flash-image-preview`
 - Gemini `gemini-2.5-flash-image`
+- AI Ping / Doubao Seedream 4.0
+- AI Ping / Doubao Seedream 5.0 Lite
 
 ## 文档
 

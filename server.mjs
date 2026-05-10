@@ -93,6 +93,18 @@ const models = [
     label: "Gemini 2.5 Flash Image",
     provider: "gemini",
     description: "低延迟候选，需要 GEMINI_API_KEY。"
+  },
+  {
+    id: "aiping:Doubao-Seedream-4.0",
+    label: "AI Ping / Doubao Seedream 4.0",
+    provider: "aiping",
+    description: "通过 AI Ping OpenAI-compatible 图像接口调用，需要 AIPING_API_KEY。"
+  },
+  {
+    id: "aiping:Doubao-Seedream-5.0-lite",
+    label: "AI Ping / Doubao Seedream 5.0 Lite",
+    provider: "aiping",
+    description: "通过 AI Ping OpenAI-compatible 图像接口调用，需要 AIPING_API_KEY。"
   }
 ];
 
@@ -178,6 +190,12 @@ function sizeFromAspectRatio(aspectRatio) {
   if (aspectRatio === "1:1") return "1024x1024";
   if (aspectRatio === "9:16") return "1024x1536";
   return "1536x1024";
+}
+
+function aipingSizeFromAspectRatio(aspectRatio) {
+  if (aspectRatio === "1:1") return "2048x2048";
+  if (aspectRatio === "9:16") return "1152x2048";
+  return "2560x1440";
 }
 
 function escapeXml(value) {
@@ -307,6 +325,85 @@ async function generateWithGemini(prompt, modelId) {
   };
 }
 
+async function generateWithAipingImage(prompt, input, modelId) {
+  if (!process.env.AIPING_API_KEY) {
+    throw new Error("Missing AIPING_API_KEY. Use Mock Preview or set AIPING_API_KEY in your environment.");
+  }
+
+  const baseUrl = process.env.AIPING_BASE_URL || "https://aiping.cn/api/v1";
+  const response = await fetch(`${baseUrl.replace(/\/$/, "")}/images/generations`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.AIPING_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: modelId,
+      prompt,
+      size: aipingSizeFromAspectRatio(input.aspectRatio),
+      output_format: "png",
+      response_format: "b64_json",
+      watermark: false,
+      extra_body: {
+        provider: {
+          enable_image_base64: true,
+          enable_image_origin_data: true,
+          sort: ["output_price", "latency"]
+        }
+      }
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error?.message || data.message || "AI Ping image generation failed.");
+  }
+
+  const firstImage =
+    data.data?.[0] ?? data.images?.[0] ?? data.output?.[0] ?? data.origin_data?.data?.[0];
+  const base64 = firstImage?.b64_json ?? firstImage?.base64 ?? firstImage?.image_base64;
+  const imageUrl = firstImage?.url ?? firstImage?.image_url ?? firstImage?.response_url;
+
+  if (base64) {
+    return {
+      image: `data:image/png;base64,${base64}`,
+      provider: "aiping",
+      model: modelId
+    };
+  }
+
+  if (imageUrl) {
+    return {
+      image: imageUrl,
+      provider: "aiping",
+      model: modelId
+    };
+  }
+
+  throw new Error(
+    `AI Ping response did not include image data or image URL. Response shape: ${JSON.stringify(
+      summarizeResponseShape(data)
+    )}`
+  );
+}
+
+function summarizeResponseShape(value, depth = 0) {
+  if (depth > 2) return typeof value;
+  if (Array.isArray(value)) {
+    return {
+      type: "array",
+      length: value.length,
+      first: value.length ? summarizeResponseShape(value[0], depth + 1) : null
+    };
+  }
+  if (!value || typeof value !== "object") return typeof value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .slice(0, 12)
+      .map(([key, child]) => [key, summarizeResponseShape(child, depth + 1)])
+  );
+}
+
 async function handleGenerate(request, response) {
   const input = await readJsonBody(request);
   const prompt = buildPrompt(input);
@@ -324,6 +421,8 @@ async function handleGenerate(request, response) {
     result = await generateWithOpenAI(prompt, input);
   } else if (modelId.startsWith("gemini:")) {
     result = await generateWithGemini(prompt, modelId.replace("gemini:", ""));
+  } else if (modelId.startsWith("aiping:")) {
+    result = await generateWithAipingImage(prompt, input, modelId.replace("aiping:", ""));
   } else {
     throw new Error(`Unsupported model: ${modelId}`);
   }
