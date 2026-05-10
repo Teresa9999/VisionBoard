@@ -481,7 +481,9 @@ function RoadmapTab({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <p className="flex-1 text-sm font-light text-[#8A8A8A]">AI 路线图暂时无法生成</p>
+          <p className="flex-1 text-sm font-light text-[#8A8A8A]">
+            {error || "AI 路线图暂时无法生成"}
+          </p>
           <button
             onClick={onRetry}
             className="flex-shrink-0 rounded-full border border-[#C9A961]/40 bg-[#C9A961]/8 px-3 py-1.5 text-xs text-[#C9A961]"
