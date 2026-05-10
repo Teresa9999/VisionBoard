@@ -8,6 +8,9 @@ import { reportAction } from "@/lib/eazo-bridge";
 import {
   SPRING,
   TIMEFRAME_OPTIONS,
+  VisionOrb,
+  WarmHeader,
+  WarmPageShell,
   generateGoalOptions,
   type VisionGoal,
 } from "@/features/vision-journey";
@@ -82,58 +85,44 @@ function GoalsContent() {
   };
 
   return (
-    <div className="min-h-svh bg-dream-gradient flex flex-col max-w-md mx-auto w-full px-5">
-      <div className="pt-12 pb-4 flex items-center justify-between">
-        <button
-          onClick={() => router.back()}
-          className="w-10 h-10 rounded-full glass flex items-center justify-center"
-          aria-label="返回"
-        >
-          <svg
-            className="w-5 h-5 text-white/70"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
-        <p className="text-[var(--color-gold-light)] text-xs tracking-widest uppercase">
-          目标确认
-        </p>
-        <div className="w-10" />
-      </div>
+    <WarmPageShell className="px-6">
+      <WarmHeader title="目标确认" onBack={() => router.back()} />
 
-      <div className="flex-1 overflow-y-auto pb-8">
+      <div className="flex-1 overflow-y-auto pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <motion.div
           className="pt-4"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING, delay: 0.1 }}
         >
-          <h1 className="font-heading text-3xl font-bold text-white mb-2">
-            这些，是你的目标
-          </h1>
-          <p className="text-[var(--color-text-muted)] text-sm mb-8">
-            点击取消你不想要的，留下真正心动的
-          </p>
+          <div className="mb-9 text-center">
+            <motion.div
+              className="relative mx-auto mb-7 flex h-28 w-28 items-center justify-center"
+              initial={{ opacity: 0, scale: 0.88 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...SPRING, delay: 0.18 }}
+            >
+              <VisionOrb className="h-28 w-28" rays />
+            </motion.div>
+            <h1 className="text-[22px] font-medium leading-[1.6] tracking-[0] text-[#2A2A2A]">
+              选择你的方向
+            </h1>
+            <p className="mx-auto mt-2 max-w-[17rem] text-sm font-light leading-[1.8] text-[#8A8A8A]">
+              点击取消不想保留的目标，留下真正有感的愿景线索
+            </p>
+          </div>
 
           {isLoading ? (
-            <div className="space-y-3 mb-8">
+            <div className="mb-8 space-y-3">
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-24 rounded-[1.5rem] skeleton-shimmer opacity-30"
+                  className="h-20 rounded-[24px] border border-[#F0F0F0] bg-white shadow-[0_2px_12px_rgba(0,0,0,0.035)] skeleton-shimmer"
                 />
               ))}
             </div>
           ) : (
-            <div className="space-y-3 mb-8">
+            <div className="mb-8 space-y-3">
               <AnimatePresence>
                 {goals.map((goal, i) => {
                   const isSelected = selectedGoals.includes(goal.id);
@@ -146,39 +135,39 @@ function GoalsContent() {
                       transition={{ ...SPRING, delay: 0.2 + i * 0.08 }}
                       whileTap={{ scale: 0.98 }}
                       className={
-                        "w-full text-left rounded-[1.5rem] p-5 transition-all duration-300 " +
+                        "w-full text-left rounded-[20px] border p-4 shadow-[0_2px_12px_rgba(0,0,0,0.035)] transition-all duration-300 " +
                         (isSelected
-                          ? "glass border border-[var(--color-gold)]/40 shadow-[0_4px_20px_rgb(var(--gold-rgb)/0.15)]"
-                          : "bg-white/5 border border-white/8 opacity-50")
+                          ? "border-[#C9A961] bg-white shadow-[0_4px_18px_rgba(201,169,97,0.15)]"
+                          : "border-[#F0F0F0] bg-white/72 opacity-75")
                       }
                     >
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-start gap-3.5">
                         <div
                           className={
-                            "w-12 h-12 rounded-2xl flex items-center justify-center text-base font-heading font-semibold flex-shrink-0 " +
+                            "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl text-base font-medium transition-all duration-300 " +
                             (isSelected
-                              ? "bg-gradient-to-br from-[rgb(var(--gold-rgb)/0.25)] to-[rgb(var(--gold-rgb)/0.10)]"
-                              : "bg-white/10")
+                              ? "bg-[#C9A961]/10 text-[#C9A961]"
+                              : "bg-[#F7F7F5] text-[#8A8A8A]")
                           }
                         >
-                          <span className="text-white/85">{goal.badge}</span>
+                          {goal.badge}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <h3 className="text-white font-heading text-lg font-semibold">
+                          <div className="flex items-start justify-between gap-3">
+                            <h3 className="text-base font-medium leading-[1.6] tracking-[0] text-[#2A2A2A]">
                               {goal.title}
                             </h3>
                             <div
                               className={
-                                "w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all duration-200 " +
+                                "mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border transition-all duration-200 " +
                                 (isSelected
-                                  ? "border-[var(--color-gold)] bg-[var(--color-gold)]"
-                                  : "border-white/30")
+                                  ? "border-[#C9A961] bg-[#C9A961]"
+                                  : "border-[#DADADA] bg-white")
                               }
                             >
                               {isSelected && (
                                 <svg
-                                  className="w-2.5 h-2.5 text-[var(--color-dusk)]"
+                                  className="h-2.5 w-2.5 text-white"
                                   fill="none"
                                   viewBox="0 0 12 12"
                                 >
@@ -193,10 +182,17 @@ function GoalsContent() {
                               )}
                             </div>
                           </div>
-                          <p className="text-white/50 text-sm mt-1 font-body leading-relaxed">
+                          <p className="mt-1 text-sm font-light leading-[1.8] text-[#6A6A6A]">
                             {goal.description}
                           </p>
-                          <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full bg-white/8 text-white/40">
+                          <span
+                            className={
+                              "mt-2 inline-block rounded-full border px-2.5 py-1 text-xs font-normal leading-[1.4] " +
+                              (isSelected
+                                ? "border-[#C9A961]/30 bg-[#C9A961]/8 text-[#C9A961]"
+                                : "border-[#E8E8E8] bg-white/70 text-[#8A8A8A]")
+                            }
+                          >
                             {goal.category}
                           </span>
                         </div>
@@ -214,8 +210,10 @@ function GoalsContent() {
             transition={{ ...SPRING, delay: 0.5 }}
             className="mb-6"
           >
-            <p className="text-white/60 text-sm mb-4">计划在多久内实现？</p>
-            <div className="grid grid-cols-3 gap-2 mb-3">
+            <p className="mb-4 text-sm font-light leading-[1.8] text-[#6A6A6A]">
+              达成时间
+            </p>
+            <div className="mb-3 grid grid-cols-3 gap-3">
               {TIMEFRAME_OPTIONS.map((t) => {
                 const isActive = !customTimeframe && timeframe === t.key;
                 return (
@@ -227,21 +225,28 @@ function GoalsContent() {
                     }}
                     whileTap={{ scale: 0.95 }}
                     className={
-                      "rounded-2xl py-3 px-2 text-center transition-all duration-200 " +
+                      "rounded-full border px-2 py-3 text-center shadow-[0_2px_10px_rgba(0,0,0,0.025)] transition-all duration-200 " +
                       (isActive
-                        ? "bg-gradient-to-b from-[rgb(var(--gold-rgb)/0.25)] to-[rgb(var(--gold-rgb)/0.10)] border border-[rgb(var(--gold-rgb)/0.60)]"
-                        : "glass border border-white/10")
+                        ? "border-[#C9A961] bg-[linear-gradient(90deg,#D4AF37,#C9A961)] text-white shadow-[0_4px_16px_rgba(201,169,97,0.26)]"
+                        : "border-[#E8E8E8] bg-white/72 text-[#4A4A4A]")
                     }
                   >
                     <p
                       className={
-                        "font-heading text-base font-semibold " +
-                        (isActive ? "text-[var(--color-gold-light)]" : "text-white/70")
+                        "text-sm font-medium leading-[1.4] " +
+                        (isActive ? "text-white" : "text-[#4A4A4A]")
                       }
                     >
                       {t.label}
                     </p>
-                    <p className="text-white/40 text-xs mt-0.5">{t.sub}</p>
+                    <p
+                      className={
+                        "mt-0.5 text-[11px] font-light leading-[1.4] " +
+                        (isActive ? "text-white/82" : "text-[#ABABAB]")
+                      }
+                    >
+                      {t.sub}
+                    </p>
                   </motion.button>
                 );
               })}
@@ -252,22 +257,22 @@ function GoalsContent() {
                 type="text"
                 value={customTimeframe}
                 onChange={(e) => setCustomTimeframe(e.target.value)}
-                placeholder="或自定义：毕业前、今年年底、45 天内…"
+                placeholder="或自定义：毕业前、今年年底、45 天内..."
                 maxLength={30}
                 className={
-                  "w-full rounded-2xl py-3.5 px-4 text-sm font-body bg-white/5 outline-none transition-all duration-200 placeholder:text-white/25 " +
+                  "w-full rounded-2xl border bg-white/78 px-4 py-3.5 text-sm font-light leading-[1.8] outline-none shadow-[0_2px_12px_rgba(0,0,0,0.035)] transition-all duration-200 placeholder:text-[#ABABAB] " +
                   (customTimeframe
-                    ? "border border-[rgb(var(--gold-rgb)/0.60)] text-[var(--color-gold-light)]"
-                    : "border border-white/10 text-white/80")
+                    ? "border-[#C9A961] text-[#4A4A4A]"
+                    : "border-[#E8E8E8] text-[#4A4A4A]")
                 }
               />
               {customTimeframe && (
                 <button
                   onClick={() => setCustomTimeframe("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center"
+                  className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-[#F5F5F5]"
                   aria-label="清除自定义时间"
                 >
-                  <svg className="w-3 h-3 text-white/50" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-3 w-3 text-[#8A8A8A]" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2 2l8 8M10 2l-8 8" />
                   </svg>
                 </button>
@@ -287,14 +292,14 @@ function GoalsContent() {
           onClick={handleContinue}
           disabled={selectedGoals.length === 0 || isContinuing}
           whileTap={{ scale: 0.97 }}
-          className="w-full py-4 rounded-[9999px] bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-light)] text-[var(--color-dusk)] text-base font-semibold font-body shadow-[0_8px_32px_rgb(var(--gold-rgb)/0.4)] disabled:opacity-50"
+          className="h-[52px] w-full rounded-2xl bg-[linear-gradient(90deg,#D4AF37,#C9A961)] text-base font-medium text-white shadow-[0_4px_16px_rgba(201,169,97,0.30)] transition disabled:opacity-50"
         >
           {isContinuing
-            ? "生成中…"
-            : `确定这 ${selectedGoals.length} 个目标，开始编织 →`}
+            ? "生成中..."
+            : `确定这 ${selectedGoals.length} 个目标，开始生成`}
         </motion.button>
       </motion.div>
-    </div>
+    </WarmPageShell>
   );
 }
 
@@ -302,8 +307,8 @@ export default function GoalsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-svh bg-dream-gradient flex items-center justify-center">
-          <div className="h-10 w-56 rounded-full skeleton-shimmer opacity-40" />
+        <div className="min-h-svh flex items-center justify-center bg-[linear-gradient(180deg,#FDFDFB_0%,#F9F9F7_100%)]">
+          <div className="h-10 w-56 rounded-full skeleton-shimmer" />
         </div>
       }
     >

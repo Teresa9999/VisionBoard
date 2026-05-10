@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api/request";
 import { reportAction } from "@/lib/eazo-bridge";
-import { randomIn } from "@/utils/stable-random";
 import {
   EMOTIONS,
   SPRING,
+  VisionOrb,
+  WarmPageShell,
   emotionAccentToRgbVar,
   type EmotionAccent,
   type EmotionKey,
@@ -18,10 +19,10 @@ function EmotionGlyph({ accent }: { accent: EmotionAccent }) {
   const rgbVar = emotionAccentToRgbVar(accent);
   return (
     <div
-      className="w-10 h-10 rounded-2xl flex items-center justify-center"
+      className="flex h-10 w-10 items-center justify-center rounded-2xl"
       style={{
-        background: `linear-gradient(135deg, rgb(var(${rgbVar}) / 0.30), rgb(var(${rgbVar}) / 0.10))`,
-        border: `1px solid rgb(var(${rgbVar}) / 0.35)`,
+        background: `linear-gradient(135deg, rgb(var(${rgbVar}) / 0.18), rgb(var(${rgbVar}) / 0.08))`,
+        border: `1px solid rgb(var(${rgbVar}) / 0.28)`,
       }}
     >
       <svg
@@ -50,40 +51,10 @@ function EmotionGlyph({ accent }: { accent: EmotionAccent }) {
 function LoadingDots() {
   return (
     <span className="inline-flex items-center gap-1">
-      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-dusk)]/70 animate-pulse" />
-      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-dusk)]/70 animate-pulse [animation-delay:120ms]" />
-      <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-dusk)]/70 animate-pulse [animation-delay:240ms]" />
+      <span className="h-1.5 w-1.5 rounded-full bg-white/75 animate-pulse" />
+      <span className="h-1.5 w-1.5 rounded-full bg-white/75 animate-pulse [animation-delay:120ms]" />
+      <span className="h-1.5 w-1.5 rounded-full bg-white/75 animate-pulse [animation-delay:240ms]" />
     </span>
-  );
-}
-
-function StarField() {
-  const stars = Array.from({ length: 40 }, (_, i) => ({
-    id: i,
-    x: randomIn(i + 1, 0, 100),
-    y: randomIn(i + 101, 0, 100),
-    size: randomIn(i + 201, 1, 3),
-    duration: randomIn(i + 301, 2, 5),
-    delay: randomIn(i + 401, 0, 4),
-  }));
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {stars.map((s) => (
-        <div
-          key={s.id}
-          className="absolute rounded-full bg-white star-particle"
-          style={{
-            left: `${s.x}%`,
-            top: `${s.y}%`,
-            width: `${s.size}px`,
-            height: `${s.size}px`,
-            "--duration": `${s.duration}s`,
-            "--delay": `${s.delay}s`,
-          } as React.CSSProperties}
-        />
-      ))}
-    </div>
   );
 }
 
@@ -121,30 +92,27 @@ export default function EmotionPage() {
   };
 
   return (
-    <div className="min-h-svh bg-dream-gradient relative overflow-hidden flex flex-col">
-      <StarField />
-
-      {/* Ambient glows */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-glow-purple opacity-60 pointer-events-none" />
-      <div className="absolute bottom-1/4 right-0 w-64 h-64 bg-glow-gold opacity-40 pointer-events-none" />
-
-      <div className="relative z-10 flex flex-col min-h-svh max-w-md mx-auto w-full px-5">
+    <WarmPageShell className="px-6">
+      <div className="relative z-10 flex min-h-svh flex-col">
         {/* Header */}
         <motion.div
-          className="pt-16 pb-8 text-center"
+          className="pb-8 pt-14 text-center"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING, delay: 0.1 }}
         >
-          <p className="text-[var(--color-gold-light)] text-sm tracking-[0.25em] uppercase font-body mb-4">
+          <div className="mb-7 flex justify-center">
+            <VisionOrb className="h-24 w-24" imageClassName="h-16 w-16" rays />
+          </div>
+          <p className="mb-3 text-xs font-normal uppercase tracking-[0.12em] text-[#C9A961]">
             Vision Board
           </p>
-          <h1 className="font-heading text-4xl font-bold text-white leading-tight mb-3">
+          <h1 className="mb-3 text-[26px] font-medium leading-[1.6] tracking-[0] text-[#2A2A2A]">
             此刻，
             <br />
             你在追求什么？
           </h1>
-          <p className="text-[var(--color-text-muted)] text-base leading-relaxed">
+          <p className="text-sm font-light leading-[1.8] text-[#8A8A8A]">
             选择最贴近你内心的状态
             <br />
             这将是你探索旅程的起点
@@ -153,7 +121,7 @@ export default function EmotionPage() {
 
         {/* Emotion grid */}
         <motion.div
-          className="grid grid-cols-2 gap-3 flex-1"
+          className="grid flex-1 grid-cols-2 gap-3"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING, delay: 0.25 }}
@@ -171,20 +139,21 @@ export default function EmotionPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...SPRING, delay: 0.3 + i * 0.06 }}
                 className={
-                  "relative overflow-hidden rounded-[1.5rem] p-4 text-left border transition-all duration-300 min-h-[120px] " +
+                  "relative min-h-[120px] overflow-hidden rounded-[20px] border bg-white/78 p-4 text-left shadow-[0_2px_12px_rgba(0,0,0,0.035)] transition-all duration-300 " +
                   (selectedState
-                    ? `${emotion.glowClass} border-white/15 scale-105`
-                    : "border-white/10 hover:border-white/15")
+                    ? "scale-[1.02] border-[#C9A961] shadow-[0_4px_18px_rgba(201,169,97,0.15)]"
+                    : "border-[#F0F0F0] hover:border-[#E8E8E8]")
                 }
                 style={{
-                  background: `linear-gradient(135deg, rgb(var(${rgbVar}) / 0.22) 0%, rgb(var(${rgbVar}) / 0.08) 100%)`,
-                  borderColor: `rgb(var(${rgbVar}) / ${selectedState ? 0.55 : 0.35})`,
+                  background: selectedState
+                    ? `linear-gradient(135deg, rgb(var(${rgbVar}) / 0.16) 0%, rgb(255 255 255 / 0.92) 100%)`
+                    : undefined,
                 }}
               >
                 <AnimatePresence>
                   {selectedState && (
                     <motion.div
-                      className="absolute inset-0 rounded-[1.5rem] border-2 border-white/25"
+                      className="absolute inset-0 rounded-[20px] border border-[#C9A961]/40"
                       initial={{ opacity: 0, scale: 0.92 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0 }}
@@ -195,16 +164,16 @@ export default function EmotionPage() {
 
                 <EmotionGlyph accent={emotion.accent} />
 
-                <p className="text-white font-heading text-xl font-semibold mt-3 mb-1">
+                <p className="mb-1 mt-3 text-lg font-medium leading-[1.6] text-[#2A2A2A]">
                   {emotion.label}
                 </p>
-                <p className="text-white/60 text-xs leading-relaxed font-body">
+                <p className="text-xs font-light leading-[1.8] text-[#6A6A6A]">
                   {emotion.description}
                 </p>
 
                 {selectedState && (
                   <motion.div
-                    className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white/90 flex items-center justify-center"
+                    className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-[#C9A961]"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{
@@ -214,7 +183,7 @@ export default function EmotionPage() {
                     }}
                   >
                     <svg
-                      className="w-3 h-3 text-[var(--color-dusk)]"
+                      className="h-3 w-3 text-white"
                       fill="none"
                       viewBox="0 0 12 12"
                     >
@@ -235,7 +204,7 @@ export default function EmotionPage() {
 
         {/* CTA */}
         <motion.div
-          className="pt-6 pb-[calc(env(safe-area-inset-bottom)+24px)]"
+          className="pb-[calc(env(safe-area-inset-bottom)+24px)] pt-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...SPRING, delay: 0.6 }}
@@ -245,10 +214,10 @@ export default function EmotionPage() {
             disabled={!selected || isLoading}
             whileTap={{ scale: selected ? 0.97 : 1 }}
             className={
-              "w-full py-4 rounded-[9999px] text-base font-semibold font-body transition-all duration-300 " +
+              "h-[52px] w-full rounded-2xl text-base font-medium transition-all duration-300 " +
               (selected
-                ? "bg-gradient-to-r from-[var(--color-gold)] to-[var(--color-gold-light)] text-[var(--color-dusk)] shadow-[0_8px_32px_rgb(var(--gold-rgb)/0.4)]"
-                : "bg-white/10 text-white/30 cursor-not-allowed")
+                ? "bg-[linear-gradient(90deg,#D4AF37,#C9A961)] text-white shadow-[0_4px_16px_rgba(201,169,97,0.30)]"
+                : "cursor-not-allowed border border-[#E8E8E8] bg-white/70 text-[#ABABAB]")
             }
           >
             {isLoading ? (
@@ -262,6 +231,6 @@ export default function EmotionPage() {
           </motion.button>
         </motion.div>
       </div>
-    </div>
+    </WarmPageShell>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api/request";
 import { reportAction } from "@/lib/eazo-bridge";
-import { randomIn } from "@/utils/stable-random";
+import { VisionOrb, WarmPageShell } from "@/features/vision-journey";
 
 const SPRING = { type: "spring" as const, stiffness: 280, damping: 32 };
 
@@ -56,22 +56,12 @@ const TABS = [
   { id: "spirit", label: "小精灵" },
 ];
 
-const HEADER_STARS = Array.from({ length: 20 }, (_, i) => ({
-  id: i,
-  x: randomIn(i + 1, 0, 100),
-  y: randomIn(i + 101, 0, 100),
-  size: randomIn(i + 201, 1, 3),
-  duration: randomIn(i + 301, 1.5, 4.5),
-  delay: randomIn(i + 401, 0, 3),
-}));
-
 function GoalDot() {
   return (
     <span
       className="inline-block w-2 h-2 rounded-full"
       style={{
-        background:
-          "linear-gradient(135deg, var(--color-gold), var(--color-lavender))",
+        background: "linear-gradient(135deg, #D4AF37, #C9A961)",
       }}
     />
   );
@@ -99,13 +89,13 @@ function VisionBoardTab({
         animate={{ opacity: 1, y: 0 }}
         transition={SPRING}
       >
-        <p className="text-[var(--color-gold-light)] text-xs tracking-widest uppercase mb-2">
+        <p className="mb-2 text-xs font-normal uppercase tracking-[0.08em] text-[#C9A961]">
           Your Vision
         </p>
-        <h2 className="font-heading text-2xl font-bold text-[var(--color-dusk)] mb-1">
+        <h2 className="mb-1 text-[22px] font-medium leading-[1.6] text-[#2A2A2A]">
           你的专属愿景板
         </h2>
-        <p className="text-[var(--color-text-muted)] text-sm">
+        <p className="text-sm font-light leading-[1.8] text-[#8A8A8A]">
           这些画面，是你内心深处的渴望
         </p>
       </motion.div>
@@ -126,12 +116,12 @@ function VisionBoardTab({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-dusk)]/60 to-transparent" />
           <div className="absolute bottom-4 left-4">
-            <span className="glass px-3 py-1 rounded-full text-white text-sm font-body">
+            <span className="rounded-full border border-white/70 bg-white/78 px-3 py-1 text-sm font-light text-[#4A4A4A] shadow-[0_2px_10px_rgba(0,0,0,0.06)] backdrop-blur">
               {goals[0]?.title || "我的梦想"}
             </span>
           </div>
           <div className="absolute top-4 right-4">
-            <span className="glass px-3 py-1 rounded-full text-white/85 text-xs font-body">
+            <span className="rounded-full border border-white/70 bg-white/78 px-3 py-1 text-xs font-light text-[#6A6A6A] shadow-[0_2px_10px_rgba(0,0,0,0.06)] backdrop-blur">
               {isGeneratingImage
                 ? "AI 生成中"
                 : generatedImage
@@ -171,12 +161,12 @@ function VisionBoardTab({
       )}
 
       <motion.div
-        className="glass-warm rounded-[1.5rem] p-5"
+        className="rounded-[24px] border border-[#F0F0F0] bg-white p-5 shadow-[0_2px_16px_rgba(0,0,0,0.05)]"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...SPRING, delay: 0.5 }}
       >
-        <p className="text-[var(--color-text-secondary)] text-sm mb-3 font-body">
+        <p className="mb-3 text-sm font-light text-[#6A6A6A]">
           你的核心愿景
         </p>
         <div className="flex flex-wrap gap-2">
@@ -185,10 +175,9 @@ function VisionBoardTab({
               key={g.title}
               className="px-3 py-1.5 rounded-full text-sm font-body inline-flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(135deg, rgb(var(--gold-rgb)/0.15), rgb(var(--lavender-rgb)/0.15))",
-                border: "1px solid rgb(var(--gold-rgb)/0.30)",
-                color: "var(--color-text-secondary)",
+                background: "rgb(var(--gold-rgb)/0.08)",
+                border: "1px solid rgb(var(--gold-rgb)/0.22)",
+                color: "#4A4A4A",
               }}
             >
               <GoalDot />
@@ -225,19 +214,19 @@ function RoadmapTab({ goals, timeframe }: { goals: Goal[]; timeframe: string }) 
         animate={{ opacity: 1, y: 0 }}
         transition={SPRING}
       >
-        <p className="text-[var(--color-gold-light)] text-xs tracking-widest uppercase mb-2">
+        <p className="mb-2 text-xs font-normal uppercase tracking-[0.08em] text-[#C9A961]">
           Roadmap
         </p>
-        <h2 className="font-heading text-2xl font-bold text-[var(--color-dusk)] mb-1">
+        <h2 className="mb-1 text-[22px] font-medium leading-[1.6] text-[#2A2A2A]">
           {timeframeLabel}目标路线图
         </h2>
-        <p className="text-[var(--color-text-muted)] text-sm">
+        <p className="text-sm font-light leading-[1.8] text-[#8A8A8A]">
           每一步都是通向愿景的里程碑
         </p>
       </motion.div>
 
       <div className="relative">
-        <div className="absolute left-6 top-0 bottom-0 w-px bg-gradient-to-b from-[var(--color-gold)]/60 via-[var(--color-lavender)]/40 to-transparent" />
+        <div className="absolute bottom-0 left-6 top-0 w-px bg-gradient-to-b from-[#C9A961]/70 via-[#E8E8E8] to-transparent" />
 
         <div className="space-y-6">
           {phases.map((phase, phaseIdx) => (
@@ -259,25 +248,25 @@ function RoadmapTab({ goals, timeframe }: { goals: Goal[]; timeframe: string }) 
                 <div className="w-2 h-2 rounded-full bg-[var(--color-gold)]" />
               </div>
 
-              <p className="text-[var(--color-gold)] text-xs font-body tracking-wider uppercase mb-3">
+              <p className="mb-3 text-xs font-normal uppercase tracking-[0.05em] text-[#C9A961]">
                 {phase.phase} · {phase.label}
               </p>
 
               <div className="space-y-3">
                 {phase.goals.map((goal) => (
-                  <div key={goal.title} className="glass-warm rounded-[1.25rem] p-4">
+                  <div key={goal.title} className="rounded-[20px] border border-[#F0F0F0] bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.035)]">
                     <div className="flex items-start gap-3">
                       <div className="mt-1">
                         <GoalDot />
                       </div>
                       <div>
-                        <h3 className="font-heading text-base font-semibold text-[var(--color-text-primary)] mb-1">
+                        <h3 className="mb-1 text-base font-medium leading-[1.6] text-[#2A2A2A]">
                           {goal.title}
                         </h3>
-                        <p className="text-[var(--color-text-muted)] text-sm font-body leading-relaxed">
+                        <p className="text-sm font-light leading-[1.8] text-[#6A6A6A]">
                           {goal.description}
                         </p>
-                        <span className="inline-block mt-2 px-2 py-0.5 rounded-full text-xs bg-[var(--color-lavender)]/20 text-[var(--color-lavender-deep)]">
+                        <span className="mt-2 inline-block rounded-full border border-[#C9A961]/22 bg-[#C9A961]/8 px-2 py-0.5 text-xs text-[#C9A961]">
                           {goal.category}
                         </span>
                       </div>
@@ -307,7 +296,7 @@ function RoadmapTab({ goals, timeframe }: { goals: Goal[]; timeframe: string }) 
               </svg>
             </div>
             <div className="pt-1">
-              <p className="text-[var(--color-text-muted)] text-sm font-heading italic">
+              <p className="text-sm font-light italic leading-[1.8] text-[#8A8A8A]">
                 {timeframeLabel}后，那个更好的你，
                 <br />正在等待你的到来。
               </p>
@@ -328,13 +317,13 @@ function SpiritTab() {
         animate={{ opacity: 1, y: 0 }}
         transition={SPRING}
       >
-        <p className="text-[var(--color-gold-light)] text-xs tracking-widest uppercase mb-2">
+        <p className="mb-2 text-xs font-normal uppercase tracking-[0.08em] text-[#C9A961]">
           AI Spirit
         </p>
-        <h2 className="font-heading text-2xl font-bold text-[var(--color-dusk)] mb-1">
+        <h2 className="mb-1 text-[22px] font-medium leading-[1.6] text-[#2A2A2A]">
           你的小精灵
         </h2>
-        <p className="text-[var(--color-text-muted)] text-sm">专属于你的愿景陪伴者</p>
+        <p className="text-sm font-light text-[#8A8A8A]">专属于你的愿景陪伴者</p>
       </motion.div>
 
       <motion.div
@@ -344,47 +333,26 @@ function SpiritTab() {
         transition={{ ...SPRING, delay: 0.1 }}
       >
         <div
-          className="rounded-[2rem] p-8 text-center relative overflow-hidden"
+          className="relative overflow-hidden rounded-[28px] border border-[#F0F0F0] bg-white p-8 text-center shadow-[0_2px_16px_rgba(0,0,0,0.05)]"
           style={{
             background:
-              "linear-gradient(145deg, rgb(var(--lavender-rgb) / 0.25) 0%, rgb(var(--gold-rgb) / 0.10) 100%)",
-            border: "1px solid rgb(var(--lavender-rgb) / 0.30)",
+              "linear-gradient(145deg, rgb(255 255 255 / 0.96) 0%, rgb(var(--gold-rgb) / 0.08) 100%)",
           }}
         >
-          <div className="absolute top-0 left-0 w-32 h-32 rounded-full bg-[var(--color-lavender)]/10 -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-24 h-24 rounded-full bg-[var(--color-gold)]/10 translate-x-1/2 translate-y-1/2" />
+          <div className="absolute left-0 top-0 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#C9A961]/10" />
+          <div className="absolute bottom-0 right-0 h-24 w-24 translate-x-1/2 translate-y-1/2 rounded-full bg-[#D4AF37]/10" />
 
           <motion.div
             className="relative z-10 mb-6 flex justify-center"
             animate={{ y: [-4, 4, -4] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
-            <div
-              className="w-24 h-28 rounded-full relative flex items-center justify-center"
-              style={{
-                background:
-                  "linear-gradient(145deg, rgb(var(--lavender-rgb) / 0.60) 0%, rgb(var(--gold-rgb) / 0.40) 100%)",
-                boxShadow:
-                  "0 8px 32px rgb(var(--lavender-deep-rgb) / 0.30), inset 0 1px 0 rgb(255 255 255 / 0.50)",
-              }}
-            >
-              <svg
-                className="absolute w-8 h-8 text-[var(--color-lavender-deep)]/40"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  d="M12 4 L14 8 L11 10 L13 14"
-                  strokeLinecap="round"
-                />
-              </svg>
-
+            <div className="relative flex h-28 w-28 items-center justify-center">
+              <VisionOrb className="h-28 w-28" imageClassName="h-20 w-20" />
               {[0, 72, 144, 216, 288].map((angle, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-1.5 h-1.5 rounded-full bg-[var(--color-gold-light)]"
+                  className="absolute h-1.5 w-1.5 rounded-full bg-[#C9A961]"
                   style={{
                     top: `${50 - 55 * Math.cos((angle * Math.PI) / 180)}%`,
                     left: `${50 + 55 * Math.sin((angle * Math.PI) / 180)}%`,
@@ -396,10 +364,10 @@ function SpiritTab() {
             </div>
           </motion.div>
 
-          <h3 className="font-heading text-xl font-semibold text-[var(--color-text-primary)] mb-2">
-            小精灵正在孵化中…
+          <h3 className="mb-2 text-xl font-medium leading-[1.6] text-[#2A2A2A]">
+            小精灵正在孵化中...
           </h3>
-          <p className="text-[var(--color-text-muted)] text-sm leading-relaxed font-body mb-6">
+          <p className="mb-6 text-sm font-light leading-[1.8] text-[#6A6A6A]">
             你的专属愿景陪伴者即将诞生
             <br />
             它将帮你记录进展、提供鼓励，
@@ -410,15 +378,15 @@ function SpiritTab() {
           <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm"
             style={{
-              background: "rgb(var(--lavender-rgb) / 0.20)",
-              border: "1px solid rgb(var(--lavender-rgb) / 0.30)",
-              color: "var(--color-lavender-deep)",
+              background: "rgb(var(--gold-rgb) / 0.08)",
+              border: "1px solid rgb(var(--gold-rgb) / 0.22)",
+              color: "#C9A961",
             }}
           >
             <span className="inline-flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-lavender-deep)]/70 animate-pulse" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-lavender-deep)]/70 animate-pulse [animation-delay:120ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-lavender-deep)]/70 animate-pulse [animation-delay:240ms]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C9A961]/70 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C9A961]/70 animate-pulse [animation-delay:120ms]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C9A961]/70 animate-pulse [animation-delay:240ms]" />
             </span>
             孵化进度 42%
           </div>
@@ -426,7 +394,7 @@ function SpiritTab() {
       </motion.div>
 
       <motion.p
-        className="text-center text-[var(--color-text-muted)] text-xs mt-6"
+        className="mt-6 text-center text-xs text-[#8A8A8A]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
@@ -530,43 +498,19 @@ function ResultContent() {
   };
 
   return (
-    <div
-      className="min-h-svh flex flex-col max-w-md mx-auto w-full"
-      style={{ background: "var(--color-cream)" }}
-    >
-      <div className="relative overflow-hidden" style={{ height: 200 }}>
-        <div className="absolute inset-0 bg-dream-gradient" />
-        <div className="absolute inset-0 bg-glow-purple opacity-50" />
-
-        {HEADER_STARS.map((star) => (
-          <motion.div
-            key={star.id}
-            className="absolute rounded-full bg-white"
-            style={{
-              left: `${star.x}%`,
-              top: `${star.y}%`,
-              width: `${star.size}px`,
-              height: `${star.size}px`,
-            }}
-            animate={{ opacity: [0.3, 1, 0.3] }}
-            transition={{
-              duration: star.duration,
-              delay: star.delay,
-              repeat: Infinity,
-            }}
-          />
-        ))}
-
-        <div className="relative z-10 flex flex-col items-center justify-center h-full px-5 pt-8">
+    <WarmPageShell>
+      <div className="relative overflow-hidden px-6" style={{ height: 212 }}>
+        <div className="relative z-10 flex h-full flex-col items-center justify-center pt-8">
+          <VisionOrb className="mb-4 h-20 w-20" imageClassName="h-14 w-14" />
           <motion.p
-            className="text-[var(--color-gold-light)] text-xs tracking-widest uppercase mb-2"
+            className="mb-2 text-xs font-normal uppercase tracking-[0.08em] text-[#C9A961]"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
           >
             Your Vision
           </motion.p>
           <motion.h1
-            className="font-heading text-3xl font-bold text-white text-center"
+            className="text-center text-[24px] font-medium leading-[1.6] text-[#2A2A2A]"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -577,10 +521,10 @@ function ResultContent() {
       </div>
 
       <div
-        className="px-5 pt-1 pb-0 sticky top-0 z-20"
+        className="sticky top-0 z-20 px-6 pb-0 pt-1 backdrop-blur"
         style={{
-          background: "var(--color-cream)",
-          borderBottom: "1px solid var(--color-border)",
+          background: "rgb(253 253 251 / 0.88)",
+          borderBottom: "1px solid #F0F0F0",
         }}
       >
         <div className="flex">
@@ -591,8 +535,8 @@ function ResultContent() {
               className={
                 "flex-1 py-4 text-sm font-body font-medium relative transition-colors duration-200 " +
                 (activeTab === tab.id
-                  ? "text-[var(--color-text-primary)]"
-                  : "text-[var(--color-text-muted)]")
+                  ? "text-[#C9A961]"
+                  : "text-[#8A8A8A]")
               }
             >
               {tab.label}
@@ -645,34 +589,33 @@ function ResultContent() {
       </div>
 
       <div
-        className="px-5 py-4 pb-[calc(env(safe-area-inset-bottom)+16px)] flex gap-3"
+        className="flex gap-3 px-6 py-4 pb-[calc(env(safe-area-inset-bottom)+16px)]"
         style={{
-          background: "var(--color-cream)",
-          borderTop: "1px solid var(--color-border)",
+          background: "rgb(253 253 251 / 0.90)",
+          borderTop: "1px solid #F0F0F0",
         }}
       >
         <motion.button
           onClick={() => router.push("/")}
           whileTap={{ scale: 0.96 }}
-          className="flex-1 py-3.5 rounded-[9999px] border text-sm font-body font-medium text-[var(--color-text-secondary)]"
-          style={{ borderColor: "var(--color-border)", background: "transparent" }}
+          className="flex-1 rounded-2xl border py-3.5 text-sm font-normal text-[#4A4A4A]"
+          style={{ borderColor: "#E8E8E8", background: "rgb(255 255 255 / 0.72)" }}
         >
           重新开始
         </motion.button>
         <motion.button
           onClick={handleShare}
           whileTap={{ scale: 0.96 }}
-          className="flex-1 py-3.5 rounded-[9999px] text-sm font-body font-semibold text-[var(--color-dusk)]"
+          className="flex-1 rounded-2xl py-3.5 text-sm font-medium text-white"
           style={{
-            background:
-              "linear-gradient(135deg, var(--color-gold), var(--color-gold-light))",
-            boxShadow: "0 4px 16px rgb(var(--gold-rgb) / 0.35)",
+            background: "linear-gradient(90deg, #D4AF37, #C9A961)",
+            boxShadow: "0 4px 16px rgb(var(--gold-rgb) / 0.30)",
           }}
         >
           分享愿景板
         </motion.button>
       </div>
-    </div>
+    </WarmPageShell>
   );
 }
 
@@ -682,9 +625,9 @@ export default function ResultPage() {
       fallback={
         <div
           className="min-h-svh flex items-center justify-center"
-          style={{ background: "var(--color-cream)" }}
+          style={{ background: "linear-gradient(180deg,#FDFDFB 0%,#F9F9F7 100%)" }}
         >
-          <div className="text-[var(--color-text-muted)]">生成中…</div>
+          <div className="text-[#8A8A8A]">生成中...</div>
         </div>
       }
     >

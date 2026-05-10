@@ -13,6 +13,8 @@ import { request } from "@/lib/api/request";
 import { reportAction } from "@/lib/eazo-bridge";
 import {
   DISCOVERY_CARDS,
+  WarmHeader,
+  WarmPageShell,
   discoveryAccentToCssVar,
   type DiscoveryCard as DiscoveryCardData,
 } from "@/features/vision-journey";
@@ -78,10 +80,10 @@ function SwipeCard({
       onDragEnd={handleDragEnd}
     >
       <div
-        className="w-full h-full rounded-[2rem] overflow-hidden relative"
+        className="relative h-full w-full overflow-hidden rounded-[32px] border border-white bg-white"
         style={{
           boxShadow:
-            "0 16px 48px rgb(0 0 0 / 0.40), 0 4px 12px rgb(0 0 0 / 0.20)",
+            "0 18px 44px rgb(42 42 42 / 0.12), 0 4px 16px rgb(201 169 97 / 0.10)",
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -93,27 +95,27 @@ function SwipeCard({
         />
 
         {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[rgb(var(--midnight-rgb)/0.90)] via-[rgb(var(--midnight-rgb)/0.20)] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/8 to-transparent" />
 
         {/* Category pill */}
-        <div className="absolute top-5 left-5 px-3 py-1 rounded-full glass text-white/80 text-xs font-body tracking-wider">
+        <div className="absolute left-5 top-5 rounded-full border border-white/70 bg-white/78 px-3 py-1 text-xs font-normal tracking-[0.05em] text-[#6A6A6A] shadow-[0_2px_10px_rgba(0,0,0,0.06)] backdrop-blur">
           {card.category}
         </div>
 
         {/* LIKE badge */}
         {isTop && (
           <motion.div
-            className="absolute top-8 right-6 px-5 py-2 rounded-full border-2 backdrop-blur-sm"
+            className="absolute right-6 top-8 rounded-full border px-5 py-2 backdrop-blur-sm"
             style={{
               opacity: likeOpacity,
               rotate: -15,
-              borderColor: "rgb(var(--sage-rgb) / 0.85)",
-              background: "rgb(var(--sage-rgb) / 0.18)",
+              borderColor: "rgb(var(--gold-rgb) / 0.85)",
+              background: "rgb(255 255 255 / 0.82)",
             }}
           >
             <span
-              className="font-heading font-bold text-xl tracking-wider"
-              style={{ color: "rgb(var(--sage-rgb) / 0.95)" }}
+              className="text-xl font-medium tracking-[0.05em]"
+              style={{ color: "rgb(var(--gold-rgb) / 0.95)" }}
             >
               喜欢
             </span>
@@ -123,17 +125,17 @@ function SwipeCard({
         {/* SKIP badge */}
         {isTop && (
           <motion.div
-            className="absolute top-8 left-6 px-5 py-2 rounded-full border-2 backdrop-blur-sm"
+            className="absolute left-6 top-8 rounded-full border px-5 py-2 backdrop-blur-sm"
             style={{
               opacity: skipOpacity,
               rotate: 15,
-              borderColor: "rgb(var(--blush-rgb) / 0.85)",
-              background: "rgb(var(--blush-rgb) / 0.18)",
+              borderColor: "rgb(218 218 218 / 0.95)",
+              background: "rgb(255 255 255 / 0.78)",
             }}
           >
             <span
-              className="font-heading font-bold text-xl tracking-wider"
-              style={{ color: "rgb(var(--blush-rgb) / 0.95)" }}
+              className="text-xl font-medium tracking-[0.05em]"
+              style={{ color: "#8A8A8A" }}
             >
               跳过
             </span>
@@ -143,13 +145,13 @@ function SwipeCard({
         {/* Content */}
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <div
-            className="inline-block w-8 h-1 rounded-full mb-3"
+            className="mb-3 inline-block h-1 w-8 rounded-full"
             style={{ backgroundColor: `var(${accentVar})` }}
           />
-          <h2 className="font-heading text-3xl font-bold text-white mb-2">
+          <h2 className="mb-2 text-[28px] font-medium leading-[1.35] text-white drop-shadow-sm">
             {card.title}
           </h2>
-          <p className="text-white/70 text-base font-body leading-relaxed">
+          <p className="text-base font-light leading-relaxed text-white/82">
             {card.subtitle}
           </p>
         </div>
@@ -170,15 +172,14 @@ function SwipeButtons({
       <motion.button
         onClick={onSkip}
         whileTap={{ scale: 0.9 }}
-        className="w-16 h-16 rounded-full glass flex items-center justify-center"
-        style={{ border: "1px solid rgb(var(--blush-rgb) / 0.40)" }}
+        className="flex h-16 w-16 items-center justify-center rounded-full border border-[#E8E8E8] bg-white/80 shadow-[0_4px_16px_rgba(0,0,0,0.05)]"
         aria-label="跳过"
       >
         <svg
           className="w-7 h-7"
           fill="none"
           viewBox="0 0 24 24"
-          stroke="rgb(var(--blush-rgb) / 0.95)"
+          stroke="#8A8A8A"
           strokeWidth={2.5}
         >
           <path
@@ -192,10 +193,10 @@ function SwipeButtons({
       <motion.button
         onClick={onLike}
         whileTap={{ scale: 0.9 }}
-        className="w-20 h-20 rounded-full flex items-center justify-center"
+        className="flex h-20 w-20 items-center justify-center rounded-full"
         style={{
-          background: "linear-gradient(135deg, rgb(var(--sage-rgb) / 0.95), rgb(var(--sage-rgb) / 0.70))",
-          boxShadow: "0 8px 24px rgb(var(--sage-rgb) / 0.45)",
+          background: "linear-gradient(135deg, #D4AF37, #C9A961)",
+          boxShadow: "0 8px 24px rgb(var(--gold-rgb) / 0.32)",
         }}
         aria-label="喜欢"
       >
@@ -214,7 +215,7 @@ function SwipeButtons({
 function DoneIcon() {
   return (
     <svg
-      className="w-12 h-12 text-[var(--color-gold-light)]"
+      className="h-12 w-12 text-[#C9A961]"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -317,46 +318,18 @@ function SwipeContent() {
   }
 
   return (
-    <div className="min-h-svh bg-dream-gradient flex flex-col max-w-md mx-auto w-full px-5">
-      <div className="pt-12 pb-4 flex items-center justify-between">
-        <button
-          onClick={() => router.back()}
-          className="w-10 h-10 rounded-full glass flex items-center justify-center"
-          aria-label="返回"
-        >
-          <svg
-            className="w-5 h-5 text-white/70"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-        </button>
+    <WarmPageShell className="px-6">
+      <WarmHeader
+        title="直觉探索"
+        subtitle={`${swipedCount} / ${DISCOVERY_CARDS.length}`}
+        onBack={() => router.back()}
+      />
 
-        <div className="text-center">
-          <p className="text-[var(--color-gold-light)] text-xs tracking-widest uppercase">
-            直觉探索
-          </p>
-          <p className="text-white/50 text-xs mt-0.5">
-            {swipedCount} / {DISCOVERY_CARDS.length}
-          </p>
-        </div>
-
-        <div className="w-10" />
-      </div>
-
-      <div className="mb-6 h-1 rounded-full bg-white/10 overflow-hidden">
+      <div className="mb-6 h-1 overflow-hidden rounded-full bg-[#E8E8E8]">
         <motion.div
           className="h-full rounded-full"
           style={{
-            background:
-              "linear-gradient(90deg, var(--color-gold), var(--color-gold-light))",
+            background: "linear-gradient(90deg, #D4AF37, #C9A961)",
           }}
           initial={{ width: 0 }}
           animate={{ width: `${progress * 100}%` }}
@@ -364,8 +337,8 @@ function SwipeContent() {
         />
       </div>
 
-      <p className="text-center text-white/40 text-sm mb-4">
-        右滑 <span className="text-[var(--color-sage)]">喜欢</span> · 左滑 <span className="text-[var(--color-blush)]">跳过</span>
+      <p className="mb-4 text-center text-sm font-light text-[#8A8A8A]">
+        右滑 <span className="text-[#C9A961]">喜欢</span> · 左滑 <span className="text-[#6A6A6A]">跳过</span>
       </p>
 
       <div className="flex-1 relative" style={{ minHeight: 400 }}>
@@ -377,11 +350,11 @@ function SwipeContent() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
             >
-              <div className="text-center text-white/60">
+              <div className="text-center text-[#6A6A6A]">
                 <div className="mb-4 flex justify-center">
                   <DoneIcon />
                 </div>
-                <p className="font-heading text-xl">正在分析你的偏好…</p>
+                <p className="text-xl font-light">正在分析你的偏好...</p>
               </div>
             </motion.div>
           ) : (
@@ -398,7 +371,7 @@ function SwipeContent() {
         </AnimatePresence>
       </div>
 
-      <div className="py-6 pb-[calc(env(safe-area-inset-bottom)+24px)] flex flex-col gap-4">
+      <div className="flex flex-col gap-4 py-6 pb-[calc(env(safe-area-inset-bottom)+24px)]">
         <AnimatePresence>
           {canContinue && !allDone && (
             <motion.button
@@ -409,15 +382,13 @@ function SwipeContent() {
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
               onClick={handleContinue}
               disabled={isSaving}
-              className="w-full py-4 rounded-2xl font-heading font-semibold text-base tracking-wide disabled:opacity-60"
+              className="h-[52px] w-full rounded-2xl text-base font-medium tracking-wide text-white disabled:opacity-60"
               style={{
-                background:
-                  "linear-gradient(135deg, rgb(var(--gold-rgb) / 0.95), rgb(var(--gold-rgb) / 0.70))",
-                boxShadow: "0 8px 24px rgb(var(--gold-rgb) / 0.30)",
-                color: "rgb(var(--midnight-rgb))",
+                background: "linear-gradient(90deg, #D4AF37, #C9A961)",
+                boxShadow: "0 4px 16px rgb(var(--gold-rgb) / 0.30)",
               }}
             >
-              {isSaving ? "正在生成…" : "继续 →"}
+              {isSaving ? "正在生成..." : "继续"}
             </motion.button>
           )}
         </AnimatePresence>
@@ -426,7 +397,7 @@ function SwipeContent() {
           <SwipeButtons onSkip={handleSkipButton} onLike={handleLikeButton} />
         )}
       </div>
-    </div>
+    </WarmPageShell>
   );
 }
 
@@ -434,8 +405,8 @@ export default function SwipePage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-svh bg-dream-gradient flex items-center justify-center">
-          <div className="h-10 w-56 rounded-full skeleton-shimmer opacity-40" />
+        <div className="flex min-h-svh items-center justify-center bg-[linear-gradient(180deg,#FDFDFB_0%,#F9F9F7_100%)]">
+          <div className="h-10 w-56 rounded-full skeleton-shimmer" />
         </div>
       }
     >

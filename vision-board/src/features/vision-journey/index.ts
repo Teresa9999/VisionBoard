@@ -20,3 +20,4 @@ export {
 } from "./config/goals";
 export { generateReflectionSummary } from "./lib/reflection";
 export { generateGoalOptions } from "./lib/goal-options";
+export { WarmHeader, WarmPageShell, VisionOrb } from "./components/warm-ui";
