@@ -198,6 +198,13 @@ function aipingSizeFromAspectRatio(aspectRatio) {
   return "2560x1440";
 }
 
+function normalizeBase64Image(value, fallbackMimeType = "image/png") {
+  if (!value) return null;
+  if (typeof value !== "string") return null;
+  if (value.startsWith("data:image/")) return value;
+  return `data:${fallbackMimeType};base64,${value}`;
+}
+
 function escapeXml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -366,7 +373,7 @@ async function generateWithAipingImage(prompt, input, modelId) {
 
   if (base64) {
     return {
-      image: `data:image/png;base64,${base64}`,
+      image: normalizeBase64Image(base64),
       provider: "aiping",
       model: modelId
     };
