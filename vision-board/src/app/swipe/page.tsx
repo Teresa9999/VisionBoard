@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, Suspense } from "react";
+import { useState, useRef, useCallback, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   motion,
@@ -243,11 +243,22 @@ function SwipeContent() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const remaining = DISCOVERY_CARDS.slice(currentIndex);
+  const [shuffledCards, setShuffledCards] = useState(DISCOVERY_CARDS);
+
+  useEffect(() => {
+    const arr = [...DISCOVERY_CARDS];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    setShuffledCards(arr);
+  }, []);
+
+  const remaining = shuffledCards.slice(currentIndex);
   const swipedCount = currentIndex;
   const canContinue = swipedCount >= REQUIRED_SWIPES;
   const allDone = remaining.length === 0;
-  const progress = swipedCount / DISCOVERY_CARDS.length;
+  const progress = swipedCount / shuffledCards.length;
 
   async function navigateToSummary(finalLiked: number[], finalSkipped: number[]) {
     setIsSaving(true);
@@ -296,7 +307,7 @@ function SwipeContent() {
     setIsTransitioning(false);
 
     // Auto-proceed when all 20 cards are swiped
-    if (currentIndex === DISCOVERY_CARDS.length - 1) {
+    if (currentIndex === shuffledCards.length - 1) {
       await navigateToSummary(newLiked, newSkipped);
     }
   }
@@ -306,14 +317,14 @@ function SwipeContent() {
   }
 
   function handleLikeButton() {
-    if (currentIndex < DISCOVERY_CARDS.length) {
-      handleSwipe(DISCOVERY_CARDS[currentIndex].id, true);
+    if (currentIndex < shuffledCards.length) {
+      handleSwipe(shuffledCards[currentIndex].id, true);
     }
   }
 
   function handleSkipButton() {
-    if (currentIndex < DISCOVERY_CARDS.length) {
-      handleSwipe(DISCOVERY_CARDS[currentIndex].id, false);
+    if (currentIndex < shuffledCards.length) {
+      handleSwipe(shuffledCards[currentIndex].id, false);
     }
   }
 
@@ -321,7 +332,7 @@ function SwipeContent() {
     <WarmPageShell className="px-6">
       <WarmHeader
         title="直觉探索"
-        subtitle={`${swipedCount} / ${DISCOVERY_CARDS.length}`}
+        subtitle={`${swipedCount} / ${shuffledCards.length}`}
         onBack={() => router.back()}
       />
 

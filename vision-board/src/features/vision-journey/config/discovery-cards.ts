@@ -82,15 +82,6 @@ export const DISCOVERY_CARDS: DiscoveryCard[] = [
     accent: "sage",
   },
   {
-    id: 8,
-    title: "鲜花日常",
-    subtitle: "生活里处处都是美",
-    category: "生活元素",
-    imageUrl:
-      "https://images.unsplash.com/photo-1490750967868-88df5691cc8e?w=600&q=80",
-    accent: "rose",
-  },
-  {
     id: 9,
     title: "豪华旅居",
     subtitle: "住进高级感里，享受每一刻",
@@ -199,6 +190,15 @@ export const DISCOVERY_CARDS: DiscoveryCard[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
     accent: "blush",
+  },
+  {
+    id: 21,
+    title: "鲜花日常",
+    subtitle: "生活里处处都是美",
+    category: "生活元素",
+    imageUrl:
+      "https://images.unsplash.com/photo-1487530811015-780b74657bdc?w=600&q=80",
+    accent: "rose",
   },
 ];
 
