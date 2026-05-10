@@ -246,7 +246,7 @@ function SwipeContent() {
   const swipedCount = currentIndex;
   const canContinue = swipedCount >= REQUIRED_SWIPES;
   const allDone = remaining.length === 0;
-  const progress = Math.min(swipedCount / REQUIRED_SWIPES, 1);
+  const progress = swipedCount / DISCOVERY_CARDS.length;
 
   async function navigateToSummary(finalLiked: number[], finalSkipped: number[]) {
     setIsSaving(true);
@@ -344,7 +344,7 @@ function SwipeContent() {
             直觉探索
           </p>
           <p className="text-white/50 text-xs mt-0.5">
-            {Math.min(swipedCount, REQUIRED_SWIPES)} / {REQUIRED_SWIPES}
+            {swipedCount} / {DISCOVERY_CARDS.length}
           </p>
         </div>
 

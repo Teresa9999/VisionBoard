@@ -12,7 +12,7 @@ export function generateGoalOptions(likedCards: number[]): VisionGoal[] {
   if (selected.length < 3) {
     selected.push(...extras.slice(0, 3 - selected.length));
   }
-  if (selected.length < 4 && likedCards.length > 4) {
+  if (selected.length < 4 && likedCards.length > 4 && extras.length > 0) {
     selected.push(extras[0]);
   }
 
