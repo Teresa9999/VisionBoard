@@ -11,105 +11,11 @@ import {
 } from "framer-motion";
 import { request } from "@/lib/api/request";
 import { reportAction } from "@/lib/eazo-bridge";
-
-type AccentKey = "sage" | "lavender" | "goldLight" | "rose" | "blush";
-
-function accentToVar(accent: AccentKey) {
-  switch (accent) {
-    case "sage":
-      return "--color-sage";
-    case "lavender":
-      return "--color-lavender";
-    case "goldLight":
-      return "--color-gold-light";
-    case "rose":
-      return "--color-rose";
-    case "blush":
-      return "--color-blush";
-  }
-}
-
-const CARDS: {
-  id: number;
-  title: string;
-  subtitle: string;
-  category: string;
-  imageUrl: string;
-  accent: AccentKey;
-}[] = [
-  {
-    id: 1,
-    title: "自由旅行",
-    subtitle: "随时出发，随心而行",
-    category: "自由",
-    imageUrl:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80",
-    accent: "sage",
-  },
-  {
-    id: 2,
-    title: "深夜阅读",
-    subtitle: "在文字里遇见另一个世界",
-    category: "内心",
-    imageUrl:
-      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80",
-    accent: "lavender",
-  },
-  {
-    id: 3,
-    title: "独立创业",
-    subtitle: "把热爱变成事业",
-    category: "成就",
-    imageUrl:
-      "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&q=80",
-    accent: "goldLight",
-  },
-  {
-    id: 4,
-    title: "亲近自然",
-    subtitle: "山野间的呼吸与静默",
-    category: "自然",
-    imageUrl:
-      "https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80",
-    accent: "sage",
-  },
-  {
-    id: 5,
-    title: "创作艺术",
-    subtitle: "用双手表达内心所想",
-    category: "创作",
-    imageUrl:
-      "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=600&q=80",
-    accent: "rose",
-  },
-  {
-    id: 6,
-    title: "健康生活",
-    subtitle: "充满活力的每一天",
-    category: "健康",
-    imageUrl:
-      "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80",
-    accent: "sage",
-  },
-  {
-    id: 7,
-    title: "深度学习",
-    subtitle: "不断成长，永不停歇",
-    category: "成长",
-    imageUrl:
-      "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=600&q=80",
-    accent: "lavender",
-  },
-  {
-    id: 8,
-    title: "温暖家园",
-    subtitle: "有爱的地方就是家",
-    category: "归属",
-    imageUrl:
-      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80",
-    accent: "blush",
-  },
-];
+import {
+  DISCOVERY_CARDS,
+  discoveryAccentToCssVar,
+  type DiscoveryCard as DiscoveryCardData,
+} from "@/features/vision-journey";
 
 function SwipeCard({
   card,
@@ -117,7 +23,7 @@ function SwipeCard({
   isTop,
   index,
 }: {
-  card: (typeof CARDS)[0];
+  card: DiscoveryCardData;
   onSwipe: (id: number, liked: boolean) => void;
   isTop: boolean;
   index: number;
@@ -150,7 +56,7 @@ function SwipeCard({
   const stackScale = 1 - index * 0.04;
   const stackOpacity = 1 - index * 0.15;
 
-  const accentVar = accentToVar(card.accent);
+  const accentVar = discoveryAccentToCssVar(card.accent);
 
   return (
     <motion.div
@@ -333,8 +239,8 @@ function SwipeContent() {
   const [skipped, setSkipped] = useState<number[]>([]);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const remaining = CARDS.slice(currentIndex);
-  const progress = currentIndex / CARDS.length;
+  const remaining = DISCOVERY_CARDS.slice(currentIndex);
+  const progress = currentIndex / DISCOVERY_CARDS.length;
 
   async function handleSwipe(id: number, isLiked: boolean) {
     if (isTransitioning) return;
@@ -349,7 +255,7 @@ function SwipeContent() {
     setCurrentIndex((prev) => prev + 1);
     setIsTransitioning(false);
 
-    if (currentIndex === CARDS.length - 1) {
+    if (currentIndex === DISCOVERY_CARDS.length - 1) {
       const finalLiked = isLiked ? [...liked, id] : liked;
       const finalSkipped = isLiked ? skipped : [...skipped, id];
 
@@ -382,14 +288,14 @@ function SwipeContent() {
   }
 
   function handleLikeButton() {
-    if (currentIndex < CARDS.length) {
-      handleSwipe(CARDS[currentIndex].id, true);
+    if (currentIndex < DISCOVERY_CARDS.length) {
+      handleSwipe(DISCOVERY_CARDS[currentIndex].id, true);
     }
   }
 
   function handleSkipButton() {
-    if (currentIndex < CARDS.length) {
-      handleSwipe(CARDS[currentIndex].id, false);
+    if (currentIndex < DISCOVERY_CARDS.length) {
+      handleSwipe(DISCOVERY_CARDS[currentIndex].id, false);
     }
   }
 
@@ -421,7 +327,7 @@ function SwipeContent() {
             直觉探索
           </p>
           <p className="text-white/50 text-xs mt-0.5">
-            {currentIndex + 1} / {CARDS.length}
+            {currentIndex + 1} / {DISCOVERY_CARDS.length}
           </p>
         </div>
 

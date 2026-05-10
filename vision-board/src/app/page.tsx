@@ -6,81 +6,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api/request";
 import { reportAction } from "@/lib/eazo-bridge";
 import { randomIn } from "@/utils/stable-random";
+import {
+  EMOTIONS,
+  SPRING,
+  emotionAccentToRgbVar,
+  type EmotionAccent,
+  type EmotionKey,
+} from "@/features/vision-journey";
 
-const SPRING = { type: "spring" as const, stiffness: 260, damping: 28 };
-
-type EmotionKey = "calm" | "excited" | "lost" | "longing" | "tired" | "curious";
-
-const EMOTIONS: {
-  key: EmotionKey;
-  label: string;
-  description: string;
-  accent: "sage" | "gold" | "lavender" | "rose" | "lavenderDeep" | "blush";
-  glowClass: string;
-}[] = [
-  {
-    key: "calm",
-    label: "平静",
-    description: "内心安宁，想要找到方向",
-    accent: "sage",
-    glowClass: "glow-sage",
-  },
-  {
-    key: "excited",
-    label: "激动",
-    description: "能量充沛，渴望出发",
-    accent: "gold",
-    glowClass: "glow-gold",
-  },
-  {
-    key: "lost",
-    label: "迷茫",
-    description: "不确定前方，需要指引",
-    accent: "lavender",
-    glowClass: "glow-lavender",
-  },
-  {
-    key: "longing",
-    label: "渴望",
-    description: "心里有个声音，想被听见",
-    accent: "rose",
-    glowClass: "glow-rose",
-  },
-  {
-    key: "tired",
-    label: "疲惫",
-    description: "需要休息，也需要新的起点",
-    accent: "lavenderDeep",
-    glowClass: "glow-lavender-deep",
-  },
-  {
-    key: "curious",
-    label: "好奇",
-    description: "对未知充满兴趣与期待",
-    accent: "blush",
-    glowClass: "glow-blush",
-  },
-];
-
-function accentToRgbVar(accent: (typeof EMOTIONS)[number]["accent"]) {
-  switch (accent) {
-    case "sage":
-      return "--sage-rgb";
-    case "gold":
-      return "--gold-light-rgb";
-    case "lavender":
-      return "--lavender-rgb";
-    case "rose":
-      return "--rose-rgb";
-    case "lavenderDeep":
-      return "--lavender-deep-rgb";
-    case "blush":
-      return "--blush-rgb";
-  }
-}
-
-function EmotionGlyph({ accent }: { accent: (typeof EMOTIONS)[number]["accent"] }) {
-  const rgbVar = accentToRgbVar(accent);
+function EmotionGlyph({ accent }: { accent: EmotionAccent }) {
+  const rgbVar = emotionAccentToRgbVar(accent);
   return (
     <div
       className="w-10 h-10 rounded-2xl flex items-center justify-center"
@@ -224,7 +159,7 @@ export default function EmotionPage() {
           transition={{ ...SPRING, delay: 0.25 }}
         >
           {EMOTIONS.map((emotion, i) => {
-            const rgbVar = accentToRgbVar(emotion.accent);
+            const rgbVar = emotionAccentToRgbVar(emotion.accent);
             const selectedState = selected === emotion.key;
 
             return (

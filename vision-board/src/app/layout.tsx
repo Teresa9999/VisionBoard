@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
       <body className="min-h-svh bg-[var(--color-cream)] font-body antialiased">
         <div className="relative min-h-svh">{children}</div>
         <Toaster />

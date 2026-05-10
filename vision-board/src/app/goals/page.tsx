@@ -5,112 +5,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { request } from "@/lib/api/request";
 import { reportAction } from "@/lib/eazo-bridge";
-
-const SPRING = { type: "spring" as const, stiffness: 260, damping: 28 };
-
-type Goal = {
-  id: number;
-  title: string;
-  description: string;
-  badge: string;
-  cardIds: number[];
-  category: string;
-};
-
-function generateGoals(likedCards: number[]): Goal[] {
-  const allGoals: Goal[] = [
-    {
-      id: 1,
-      title: "开启一段旅程",
-      description: "计划并完成一次独立旅行，打开新的视野",
-      badge: "旅",
-      cardIds: [1],
-      category: "自由",
-    },
-    {
-      id: 2,
-      title: "建立阅读习惯",
-      description: "每天阅读 30 分钟，用知识滋养内心",
-      badge: "读",
-      cardIds: [2],
-      category: "成长",
-    },
-    {
-      id: 3,
-      title: "探索副业可能",
-      description: "利用专长开始一个小项目，测试创业想法",
-      badge: "启",
-      cardIds: [3],
-      category: "成就",
-    },
-    {
-      id: 4,
-      title: "回归自然怀抱",
-      description: "每月至少一次户外探索，与自然重新连接",
-      badge: "野",
-      cardIds: [4],
-      category: "自然",
-    },
-    {
-      id: 5,
-      title: "开始一个创作项目",
-      description: "用你喜欢的媒介表达内心，持续创作",
-      badge: "创",
-      cardIds: [5],
-      category: "创作",
-    },
-    {
-      id: 6,
-      title: "升级健康状态",
-      description: "建立稳定的运动和饮食习惯，精力充沛",
-      badge: "健",
-      cardIds: [6],
-      category: "健康",
-    },
-    {
-      id: 7,
-      title: "深耕一项技能",
-      description: "选择一个领域持续学习，成为真正的行家",
-      badge: "深",
-      cardIds: [7],
-      category: "成长",
-    },
-    {
-      id: 8,
-      title: "打造温暖空间",
-      description: "改善生活环境，让家成为真正的避风港",
-      badge: "家",
-      cardIds: [8],
-      category: "归属",
-    },
-  ];
-
-  const related = allGoals.filter((g) => g.cardIds.some((c) => likedCards.includes(c)));
-  const extras = allGoals.filter((g) => !related.find((r) => r.id === g.id));
-
-  const selected = [...related.slice(0, 3)];
-  if (selected.length < 3) {
-    selected.push(...extras.slice(0, 3 - selected.length));
-  }
-  if (selected.length < 4 && likedCards.length > 4) {
-    selected.push(extras[0]);
-  }
-
-  return selected.slice(0, 4);
-}
-
-const TIMEFRAMES = [
-  { key: "3months", label: "3 个月", sub: "快速起步" },
-  { key: "6months", label: "6 个月", sub: "稳步推进" },
-  { key: "1year", label: "1 年", sub: "深度蜕变" },
-];
+import {
+  SPRING,
+  TIMEFRAME_OPTIONS,
+  generateGoalOptions,
+  type VisionGoal,
+} from "@/features/vision-journey";
 
 function GoalsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("sessionId");
 
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<VisionGoal[]>([]);
   const [selectedGoals, setSelectedGoals] = useState<number[]>([]);
   const [timeframe, setTimeframe] = useState("6months");
   const [isLoading, setIsLoading] = useState(true);
@@ -123,7 +30,7 @@ function GoalsContent() {
         const res = await request(`/api/session?sessionId=${sessionId}`);
         const session = await res.json();
         const likedCards = Array.isArray(session.likedCards) ? session.likedCards : [];
-        const generated = generateGoals(likedCards);
+        const generated = generateGoalOptions(likedCards);
         setGoals(generated);
         setSelectedGoals(generated.map((g) => g.id));
         if (session.timeframe) setTimeframe(session.timeframe);
@@ -306,7 +213,7 @@ function GoalsContent() {
           >
             <p className="text-white/60 text-sm mb-4">计划在多久内实现？</p>
             <div className="grid grid-cols-3 gap-2">
-              {TIMEFRAMES.map((t) => (
+              {TIMEFRAME_OPTIONS.map((t) => (
                 <motion.button
                   key={t.key}
                   onClick={() => setTimeframe(t.key)}
